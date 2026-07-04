@@ -22,6 +22,9 @@ class AudioRecorder(private val context: Context) {
         recorder = r
     }
 
+    /** Max absolute amplitude sampled since the last call — drives the live waveform. 0 if idle. */
+    fun currentAmplitude(): Int = runCatching { recorder?.maxAmplitude ?: 0 }.getOrDefault(0)
+
     /** Returns the recorded file, or null if nothing was recording / it failed. */
     fun stop(): File? {
         return try {

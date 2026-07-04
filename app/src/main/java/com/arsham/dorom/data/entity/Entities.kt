@@ -74,22 +74,49 @@ data class TimeMarker(
     val notes: String = "",
 )
 
-@Entity(tableName = "workout_day")
-data class WorkoutDay(
+enum class GymLocation { GYM, HOME_GYM }
+
+val GYM_CATEGORIES = listOf("Chest", "Back", "Shoulder", "Bicep", "Triceps", "Forearm", "Leg", "Abs", "Cardio")
+
+@Entity(tableName = "gym_exercise")
+data class GymExercise(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val label: String,
-    val orderIndex: Int,
+    val location: GymLocation,
+    val category: String,
+    val name: String,
+    val imagePath: String? = null,
+    val createdAtEpochMillis: Long,
 )
 
-@Entity(tableName = "workout_exercise")
-data class WorkoutExercise(
+/** One exercise assigned to a calendar date — a day's plan is just the set of entries sharing a date. */
+@Entity(tableName = "gym_schedule_entry")
+data class GymScheduleEntry(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val workoutDayId: Long,
-    val name: String,
-    val sets: Int,
+    val date: String, // yyyy-MM-dd
+    val exerciseId: Long,
+    val orderIndex: Int = 0,
+)
+
+@Entity(tableName = "gym_session")
+data class GymSession(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val date: String,
+    val location: GymLocation,
+    val startEpochMillis: Long,
+    val endEpochMillis: Long? = null,
+)
+
+@Entity(tableName = "gym_session_set")
+data class GymSessionSet(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val sessionId: Long,
+    val exerciseId: Long,
+    val exerciseName: String,
+    val setNumber: Int,
+    val weight: Double,
     val reps: Int,
-    val notes: String = "",
-    val orderIndex: Int,
+    val restSeconds: Int, // measured break since the previous set finished
+    val loggedAtEpochMillis: Long,
 )
 
 enum class SongStatus { LEARNING, LEARNED }

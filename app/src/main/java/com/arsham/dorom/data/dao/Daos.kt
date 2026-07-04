@@ -12,6 +12,11 @@ import com.arsham.dorom.data.entity.DailyReview
 import com.arsham.dorom.data.entity.GuitarRecording
 import com.arsham.dorom.data.entity.GuitarSong
 import com.arsham.dorom.data.entity.GuitarTabImage
+import com.arsham.dorom.data.entity.GymExercise
+import com.arsham.dorom.data.entity.GymLocation
+import com.arsham.dorom.data.entity.GymScheduleEntry
+import com.arsham.dorom.data.entity.GymSession
+import com.arsham.dorom.data.entity.GymSessionSet
 import com.arsham.dorom.data.entity.JournalEntry
 import com.arsham.dorom.data.entity.LongTermGoal
 import com.arsham.dorom.data.entity.MoneyTransaction
@@ -20,8 +25,6 @@ import com.arsham.dorom.data.entity.PlanTask
 import com.arsham.dorom.data.entity.TimeMarker
 import com.arsham.dorom.data.entity.WeeklyPlan
 import com.arsham.dorom.data.entity.WeeklyPlanItem
-import com.arsham.dorom.data.entity.WorkoutDay
-import com.arsham.dorom.data.entity.WorkoutExercise
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -115,24 +118,42 @@ interface TimeMarkerDao {
 }
 
 @Dao
-interface WorkoutDao {
-    @Query("SELECT * FROM workout_day ORDER BY orderIndex ASC")
-    fun observeDays(): Flow<List<WorkoutDay>>
+interface GymDao {
+    @Query("SELECT * FROM gym_exercise WHERE location = :location AND category = :category ORDER BY createdAtEpochMillis DESC")
+    fun observeExercises(location: GymLocation, category: String): Flow<List<GymExercise>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertDay(day: WorkoutDay): Long
+    @Query("SELECT * FROM gym_exercise WHERE id IN (:ids)")
+    suspend fun getExercisesByIds(ids: List<Long>): List<GymExercise>
 
-    @Delete
-    suspend fun deleteDay(day: WorkoutDay)
-
-    @Query("SELECT * FROM workout_exercise WHERE workoutDayId = :dayId ORDER BY orderIndex ASC")
-    fun observeExercises(dayId: Long): Flow<List<WorkoutExercise>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertExercise(exercise: WorkoutExercise): Long
+    @Insert
+    suspend fun insertExercise(exercise: GymExercise): Long
 
     @Delete
-    suspend fun deleteExercise(exercise: WorkoutExercise)
+    suspend fun deleteExercise(exercise: GymExercise)
+
+    @Query("SELECT * FROM gym_schedule_entry WHERE date = :date ORDER BY orderIndex ASC")
+    fun observeSchedule(date: String): Flow<List<GymScheduleEntry>>
+
+    @Query("DELETE FROM gym_schedule_entry WHERE date = :date")
+    suspend fun clearSchedule(date: String)
+
+    @Insert
+    suspend fun insertScheduleEntry(entry: GymScheduleEntry): Long
+
+    @Query("SELECT * FROM gym_session ORDER BY startEpochMillis DESC")
+    fun observeSessions(): Flow<List<GymSession>>
+
+    @Query("SELECT * FROM gym_session WHERE date = :date AND endEpochMillis IS NULL LIMIT 1")
+    suspend fun getActiveSessionForDate(date: String): GymSession?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertSession(session: GymSession): Long
+
+    @Query("SELECT * FROM gym_session_set WHERE sessionId = :sessionId ORDER BY loggedAtEpochMillis ASC")
+    fun observeSets(sessionId: Long): Flow<List<GymSessionSet>>
+
+    @Insert
+    suspend fun insertSet(set: GymSessionSet): Long
 }
 
 @Dao

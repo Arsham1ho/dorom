@@ -67,7 +67,7 @@ fun MoodPickerRow(onLog: (emoji: String, note: String) -> Unit, modifier: Modifi
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                OutlinedTextField(
+                OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                     value = note,
                     onValueChange = { note = it },
                     modifier = Modifier.weight(1f),

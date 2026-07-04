@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Timelapse
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -36,9 +37,11 @@ import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.DateField
 import com.arsham.dorom.ui.components.DoromCard
 import com.arsham.dorom.ui.components.EmptyState
+import com.arsham.dorom.ui.components.IconBadge
 import com.arsham.dorom.ui.components.Tag
 import com.arsham.dorom.ui.components.TimeField
 import com.arsham.dorom.ui.components.TopBarWithBack
+import com.arsham.dorom.ui.theme.BadgeGold
 import com.arsham.dorom.ui.theme.DataText
 import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.ui.theme.rememberPulse
@@ -93,7 +96,7 @@ private fun MarkerEditor(onSave: (TimeMarker) -> Unit, onCancel: () -> Unit) {
 
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("What is it?") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = title, onValueChange = { title = it }, label = { Text("What is it?") }, modifier = Modifier.fillMaxWidth())
             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Tag(text = "Countdown", filled = direction == TimeDirection.COUNTDOWN, modifier = Modifier.doromClickable { direction = TimeDirection.COUNTDOWN })
                 Tag(text = "Count-up", filled = direction == TimeDirection.COUNTUP, modifier = Modifier.doromClickable { direction = TimeDirection.COUNTUP })
@@ -121,14 +124,20 @@ private fun MarkerCard(marker: TimeMarker, onDelete: () -> Unit) {
     val pulse = rememberPulse()
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Column {
-                Text(marker.title, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    elapsedOrRemainingLabel(marker),
-                    style = DataText.large,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.graphicsLayer { alpha = 0.7f + 0.3f * pulse },
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                IconBadge(
+                    icon = if (marker.direction == TimeDirection.COUNTDOWN) Icons.Filled.Timelapse else Icons.Filled.History,
+                    tint = BadgeGold,
                 )
+                Column {
+                    Text(marker.title, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        elapsedOrRemainingLabel(marker),
+                        style = DataText.large,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.graphicsLayer { alpha = 0.7f + 0.3f * pulse },
+                    )
+                }
             }
             IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Delete") }
         }
@@ -144,7 +153,7 @@ private fun elapsedOrRemainingLabel(marker: TimeMarker): String {
     val hours = duration.toHours() % 24
     val core = if (days > 0) "${days}d ${hours}h" else "${duration.toHours()}h ${duration.toMinutes() % 60}m"
     return when (marker.direction) {
-        TimeDirection.COUNTDOWN -> if (future) "$core left" else "$core overdue"
-        TimeDirection.COUNTUP -> if (future) "starts in $core" else "$core ago"
+        TimeDirection.COUNTDOWN -> if (future) "$core left" else "Time since ${marker.title}: $core"
+        TimeDirection.COUNTUP -> if (future) "starts in $core" else "Time since ${marker.title}: $core"
     }
 }

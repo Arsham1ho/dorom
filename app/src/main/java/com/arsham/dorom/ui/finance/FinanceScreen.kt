@@ -11,7 +11,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +37,7 @@ import com.arsham.dorom.data.repository.MonthlyReport
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.BarChart
 import com.arsham.dorom.ui.components.DoromCard
+import com.arsham.dorom.ui.components.IconBadge
 import com.arsham.dorom.ui.components.ProgressRing
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.Tag
@@ -148,11 +152,11 @@ private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -
                     Tag(text = c, filled = category == c, modifier = Modifier.doromClickable { category = c })
                 }
             }
-            OutlinedTextField(
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                 value = amount, onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
                 label = { Text("Amount") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
-            OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text("Note (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = note, onValueChange = { note = it }, label = { Text("Note (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = {
                     val amt = amount.toDoubleOrNull() ?: return@Button
@@ -171,11 +175,19 @@ private fun TransactionRow(tx: MoneyTransaction, onDelete: () -> Unit) {
         TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
         TransactionType.SAVING -> MaterialTheme.colorScheme.onSurfaceVariant
     }
+    val icon = when (tx.type) {
+        TransactionType.INCOME -> Icons.Filled.ArrowUpward
+        TransactionType.EXPENSE -> Icons.Filled.ArrowDownward
+        TransactionType.SAVING -> Icons.Filled.Savings
+    }
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Column {
-                Text(tx.category, style = MaterialTheme.typography.titleMedium)
-                Text(tx.date + if (tx.note.isNotBlank()) " · ${tx.note}" else "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                IconBadge(icon = icon, tint = color)
+                Column {
+                    Text(tx.category, style = MaterialTheme.typography.titleMedium)
+                    Text(tx.date + if (tx.note.isNotBlank()) " · ${tx.note}" else "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(money(tx.amount), style = DataText.medium, color = color)

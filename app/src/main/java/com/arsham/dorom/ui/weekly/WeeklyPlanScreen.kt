@@ -70,7 +70,7 @@ fun WeeklyPlanScreen(onBack: () -> Unit) {
             item {
                 DoromCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
-                        OutlinedTextField(
+                        OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                             value = theme,
                             onValueChange = {
                                 theme = it
@@ -79,7 +79,7 @@ fun WeeklyPlanScreen(onBack: () -> Unit) {
                             label = { Text("This week's theme") },
                             modifier = Modifier.fillMaxWidth(),
                         )
-                        OutlinedTextField(
+                        OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                             value = notes,
                             onValueChange = {
                                 notes = it
@@ -138,7 +138,7 @@ private fun DayItemsSection(
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                OutlinedTextField(
+                OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                     value = newText,
                     onValueChange = { newText = it },
                     label = { Text("Add item") },

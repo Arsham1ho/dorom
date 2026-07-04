@@ -6,13 +6,13 @@ import com.arsham.dorom.data.repository.CourseRepository
 import com.arsham.dorom.data.repository.FinanceRepository
 import com.arsham.dorom.data.repository.GoalsRepository
 import com.arsham.dorom.data.repository.GuitarRepository
+import com.arsham.dorom.data.repository.GymRepository
 import com.arsham.dorom.data.repository.JournalRepository
 import com.arsham.dorom.data.repository.MoodRepository
 import com.arsham.dorom.data.repository.PlanRepository
 import com.arsham.dorom.data.repository.ReviewRepository
 import com.arsham.dorom.data.repository.TimeMarkerRepository
 import com.arsham.dorom.data.repository.WeeklyPlanRepository
-import com.arsham.dorom.data.repository.WorkoutRepository
 import com.arsham.dorom.data.settings.SettingsRepository
 import com.arsham.dorom.notifications.AlarmScheduler
 import com.arsham.dorom.notifications.NotificationHelper
@@ -39,7 +39,7 @@ class AppContainer(app: Application) {
     val weeklyPlanRepository = WeeklyPlanRepository(db.weeklyPlanDao())
     val courseRepository = CourseRepository(db.courseDao())
     val timeMarkerRepository = TimeMarkerRepository(db.timeMarkerDao())
-    val workoutRepository = WorkoutRepository(db.workoutDao())
+    val gymRepository = GymRepository(db.gymDao(), app)
     val guitarRepository = GuitarRepository(db.guitarDao(), app)
     val reviewRepository = ReviewRepository(db.reviewDao(), app)
     val journalRepository = JournalRepository(db.journalDao())

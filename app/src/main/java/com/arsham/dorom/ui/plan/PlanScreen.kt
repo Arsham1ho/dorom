@@ -242,7 +242,7 @@ private fun TomorrowPlanEditor(modifier: Modifier = Modifier, onSaved: () -> Uni
                             )
                         }
                     }
-                    OutlinedTextField(
+                    OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                         value = newTitle,
                         onValueChange = { newTitle = it },
                         label = { Text("Title") },
