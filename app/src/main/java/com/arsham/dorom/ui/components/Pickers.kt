@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -85,7 +86,10 @@ fun DateField(label: String, date: LocalDate?, onDateChange: (LocalDate?) -> Uni
         val state: DatePickerState = rememberDatePickerState(
             initialSelectedDateMillis = date?.atStartOfDay(ZoneId.systemDefault())?.toInstant()?.toEpochMilli(),
         )
-        AlertDialog(
+        // DatePickerDialog (not a generic AlertDialog) gives DatePicker its full required width —
+        // jamming DatePicker into AlertDialog's padded `text` slot is what clipped the calendar
+        // grid's last column.
+        DatePickerDialog(
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 TextButton(onClick = {
@@ -97,7 +101,6 @@ fun DateField(label: String, date: LocalDate?, onDateChange: (LocalDate?) -> Uni
                 }) { Text("Set") }
             },
             dismissButton = { TextButton(onClick = { showDialog = false }) { Text("Cancel") } },
-            text = { DatePicker(state = state) },
-        )
+        ) { DatePicker(state = state) }
     }
 }

@@ -48,10 +48,13 @@ import com.arsham.dorom.data.entity.SongStatus
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.DoromCard
 import com.arsham.dorom.ui.components.EmptyState
+import com.arsham.dorom.ui.components.IconBadge
 import com.arsham.dorom.ui.components.LocalFileImage
+import com.arsham.dorom.ui.components.RecordingWaveform
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.Tag
 import com.arsham.dorom.ui.components.TopBarWithBack
+import com.arsham.dorom.ui.theme.BadgeViolet
 import com.arsham.dorom.ui.theme.CardShape
 import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.util.AudioPlayer
@@ -88,8 +91,8 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
                 item {
                     DoromCard(modifier = Modifier.fillMaxWidth()) {
                         Column {
-                            OutlinedTextField(value = newTitle, onValueChange = { newTitle = it }, label = { Text("Song title") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(value = newArtist, onValueChange = { newArtist = it }, label = { Text("Artist (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+                            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newTitle, onValueChange = { newTitle = it }, label = { Text("Song title") }, modifier = Modifier.fillMaxWidth())
+                            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newArtist, onValueChange = { newArtist = it }, label = { Text("Artist (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
                             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Button(onClick = {
                                     if (newTitle.isNotBlank()) {
@@ -110,10 +113,13 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
             items(songs) { song ->
                 DoromCard(modifier = Modifier.fillMaxWidth(), onClick = { onOpenSong(song.id) }) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                        Column {
-                            Text(song.title, style = MaterialTheme.typography.titleMedium)
-                            if (song.artist.isNotBlank()) {
-                                Text(song.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                            IconBadge(icon = Icons.Filled.MusicNote, tint = BadgeViolet)
+                            Column {
+                                Text(song.title.ifBlank { "Untitled song" }, style = MaterialTheme.typography.titleMedium)
+                                if (song.artist.isNotBlank()) {
+                                    Text(song.artist, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
                         }
                         Tag(text = if (song.status == SongStatus.LEARNED) "Learned" else "Learning", filled = song.status == SongStatus.LEARNED)
@@ -218,6 +224,13 @@ fun GuitarSongScreen(songId: Long, onBack: () -> Unit) {
                             Icon(if (isRecording) Icons.Filled.Stop else Icons.Filled.Mic, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Text(if (isRecording) "Stop recording" else "Record yourself playing", style = MaterialTheme.typography.titleMedium)
                         }
+                    }
+                    if (isRecording) {
+                        RecordingWaveform(
+                            isRecording = true,
+                            getAmplitude = { recorder.currentAmplitude() },
+                            modifier = Modifier.padding(top = 10.dp),
+                        )
                     }
                 }
             }

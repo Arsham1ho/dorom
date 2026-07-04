@@ -45,9 +45,11 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arsham.dorom.data.entity.Course
 import com.arsham.dorom.data.entity.DailyReview
 import com.arsham.dorom.data.entity.TimeDirection
 import com.arsham.dorom.data.entity.TimeMarker
+import com.arsham.dorom.data.repository.MonthlyReport
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.DoromCard
 import com.arsham.dorom.ui.components.IconBadge
@@ -68,6 +70,7 @@ import com.arsham.dorom.ui.theme.Terracotta
 import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.util.pretty
 import com.arsham.dorom.util.todayString
+import com.arsham.dorom.util.yearMonthString
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
@@ -85,12 +88,24 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val tasks by container.planRepository.observeTasks(today).collectAsStateWithLifecycle(initialValue = emptyList())
     val recentReviews by container.reviewRepository.observeRecentReviews(14).collectAsStateWithLifecycle(initialValue = emptyList())
     val markers by container.timeMarkerRepository.observeMarkers().collectAsStateWithLifecycle(initialValue = emptyList())
+    val courses by container.courseRepository.observeCourses().collectAsStateWithLifecycle(initialValue = emptyList())
+    val financeReport by container.financeRepository.observeMonthlyReport(yearMonthString()).collectAsStateWithLifecycle(
+        initialValue = MonthlyReport(0.0, 0.0, 0.0, emptyMap(), 50),
+    )
 
     val completed = tasks.count { it.isDone }
     val plannedCount = tasks.size
     val progress = if (plannedCount == 0) 0f else completed.toFloat() / plannedCount
     val streak = computeStreak(recentReviews)
-    val upcomingMarkers = markers.sortedBy { kotlin.math.abs(it.targetEpochMillis - System.currentTimeMillis()) }.take(3)
+    val upcomingMarkers = markers.sortedBy { kotlin.math.abs(it.targetEpochMillis - System.currentTimeMillis()) }
+
+    val snapshotPages = remember(financeReport, courses, upcomingMarkers) {
+        buildList {
+            add(SnapshotPage.Finance(financeReport))
+            add(SnapshotPage.Track(courses))
+            upcomingMarkers.forEach { add(SnapshotPage.Marker(it)) }
+        }
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -135,22 +150,23 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             }
         }
 
-        if (upcomingMarkers.isNotEmpty()) {
-            item {
-                Column {
-                    SectionHeader(title = "Time markers")
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        upcomingMarkers.forEach { marker -> TimeMarkerMini(marker) }
-                    }
-                }
+        item {
+            Column {
+                SectionHeader(title = "Snapshot")
+                SnapshotCarousel(pages = snapshotPages, onNavigate = onNavigate)
             }
         }
 
         item { SectionHeader(title = "Quick links") }
         item {
+            // Sized to fit every row exactly — no fixed height, so there's no separate inner
+            // scroll fighting the page's own scroll (that's what was clipping the last tile).
+            val rows = (quickLinks.size + 1) / 2
+            val gridHeight = 130.dp * rows + 10.dp * (rows - 1)
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                modifier = Modifier.height(280.dp),
+                modifier = Modifier.height(gridHeight),
+                userScrollEnabled = false,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
@@ -375,21 +391,113 @@ private fun QuickLinkCard(link: QuickLink, onClick: () -> Unit) {
     }
 }
 
+private sealed class SnapshotPage {
+    data class Finance(val report: MonthlyReport) : SnapshotPage()
+    data class Track(val courses: List<Course>) : SnapshotPage()
+    data class Marker(val marker: TimeMarker) : SnapshotPage()
+}
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
-private fun TimeMarkerMini(marker: TimeMarker) {
-    DoromCard {
-        Column {
-            Text(marker.title, style = MaterialTheme.typography.labelMedium, maxLines = 1)
-            val now = System.currentTimeMillis()
-            val days = ChronoUnit.DAYS.between(
-                Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate(),
-                Instant.ofEpochMilli(marker.targetEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate(),
+private fun SnapshotCarousel(pages: List<SnapshotPage>, onNavigate: (String) -> Unit) {
+    if (pages.isEmpty()) return
+    val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = { pages.size })
+
+    androidx.compose.foundation.pager.HorizontalPager(
+        state = pagerState,
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(end = 32.dp),
+        pageSpacing = 10.dp,
+    ) { page ->
+        when (val p = pages[page]) {
+            is SnapshotPage.Finance -> FinanceSnapshotCard(p.report) { onNavigate(Routes.TRACK_FINANCE) }
+            is SnapshotPage.Track -> TrackSnapshotCard(p.courses) { onNavigate(Routes.TRACK) }
+            is SnapshotPage.Marker -> MarkerSnapshotCard(p.marker) { onNavigate(Routes.TRACK_TIME_MARKERS) }
+        }
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(pages.size) { i ->
+            val active = i == pagerState.currentPage
+            androidx.compose.foundation.layout.Box(
+                modifier = Modifier
+                    .padding(horizontal = 3.dp)
+                    .size(if (active) 7.dp else 5.dp)
+                    .clip(CircleShape)
+                    .then(
+                        Modifier.background(
+                            if (active) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                        )
+                    ),
             )
-            val label = when {
-                marker.direction == TimeDirection.COUNTDOWN && days >= 0 -> "${days}d left"
-                else -> "${kotlin.math.abs(days)}d ago"
+        }
+    }
+}
+
+@Composable
+private fun FinanceSnapshotCard(report: MonthlyReport, onClick: () -> Unit) {
+    DoromCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(120.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            ProgressRing(percent = report.spendingScore / 100f, size = 64.dp, strokeWidth = 6.dp)
+            Column {
+                Text("Finance this month", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    "In ${report.income.toInt()} · Out ${report.expense.toInt()}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
-            Text(label, style = DataText.medium, color = MaterialTheme.colorScheme.primary)
+        }
+    }
+}
+
+@Composable
+private fun TrackSnapshotCard(courses: List<Course>, onClick: () -> Unit) {
+    DoromCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(120.dp)) {
+        if (courses.isEmpty()) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                IconBadge(icon = Icons.Filled.Timelapse, tint = Terracotta)
+                Text("Add a course to track your progress", style = MaterialTheme.typography.titleMedium)
+            }
+        } else {
+            val course = courses.first()
+            val pct = if (course.totalLessons == 0) 0f else course.completedLessons.toFloat() / course.totalLessons
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                ProgressRing(percent = pct, size = 64.dp, strokeWidth = 6.dp)
+                Column {
+                    Text(course.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                    Text(
+                        "${course.completedLessons}/${course.totalLessons} lessons",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MarkerSnapshotCard(marker: TimeMarker, onClick: () -> Unit) {
+    DoromCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(120.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            IconBadge(icon = Icons.Filled.Timelapse, tint = BadgeGold)
+            Column {
+                Text(marker.title, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                val now = System.currentTimeMillis()
+                val days = ChronoUnit.DAYS.between(
+                    Instant.ofEpochMilli(now).atZone(ZoneId.systemDefault()).toLocalDate(),
+                    Instant.ofEpochMilli(marker.targetEpochMillis).atZone(ZoneId.systemDefault()).toLocalDate(),
+                )
+                val label = when {
+                    marker.direction == TimeDirection.COUNTDOWN && days >= 0 -> "${days}d left"
+                    else -> "${kotlin.math.abs(days)}d ago"
+                }
+                Text(label, style = DataText.large, color = MaterialTheme.colorScheme.primary)
+            }
         }
     }
 }

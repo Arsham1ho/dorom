@@ -12,6 +12,10 @@ val CardShape = RoundedCornerShape(18.dp)
 val CardShapeLarge = RoundedCornerShape(24.dp)
 val PillShape = RoundedCornerShape(50)
 
+// Text fields default to MaterialTheme.shapes.extraSmall (our sharp chip shape) unless given
+// their own shape explicitly — every OutlinedTextField in the app passes this one instead.
+val InputShape = RoundedCornerShape(14.dp)
+
 val DoromShapes = Shapes(
     extraSmall = SharpShape,
     small = ChipShape,

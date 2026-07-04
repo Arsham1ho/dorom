@@ -92,8 +92,8 @@ private fun GoalEditor(onSave: (String, String) -> Unit, onCancel: () -> Unit) {
     var desc by remember { mutableStateOf("") }
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            OutlinedTextField(value = title, onValueChange = { title = it }, label = { Text("Goal") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = title, onValueChange = { title = it }, label = { Text("Goal") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                 value = desc, onValueChange = { desc = it }, label = { Text("Why it matters") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )

@@ -16,8 +16,12 @@ import com.arsham.dorom.ui.finance.FinanceScreen
 import com.arsham.dorom.ui.goals.GoalsScreen
 import com.arsham.dorom.ui.guitar.GuitarSongScreen
 import com.arsham.dorom.ui.guitar.GuitarScreen
-import com.arsham.dorom.ui.gym.GymDayScreen
+import com.arsham.dorom.ui.gym.GymCalendarScreen
+import com.arsham.dorom.ui.gym.GymCategoryScreen
+import com.arsham.dorom.ui.gym.GymHistoryScreen
 import com.arsham.dorom.ui.gym.GymScreen
+import com.arsham.dorom.ui.gym.GymSessionScreen
+import com.arsham.dorom.data.entity.GymLocation
 import com.arsham.dorom.ui.history.HistoryScreen
 import com.arsham.dorom.ui.home.HomeScreen
 import com.arsham.dorom.ui.journal.JournalHubScreen
@@ -66,15 +70,33 @@ fun DoromNavHost(navController: NavHostController, startDestination: String) {
         composable(Routes.TRACK_GYM) {
             GymScreen(
                 onBack = { navController.popBackStack() },
-                onOpenDay = { dayId -> navController.navigate(Routes.gymDay(dayId)) },
+                onNavigate = { navController.navigate(it) },
             )
         }
         composable(
-            Routes.TRACK_GYM_DAY,
-            arguments = listOf(navArgument("dayId") { type = NavType.LongType }),
+            Routes.GYM_CATEGORY,
+            arguments = listOf(navArgument("location") { type = NavType.StringType }, navArgument("category") { type = NavType.StringType }),
         ) { entry ->
-            val dayId = entry.arguments?.getLong("dayId") ?: 0L
-            GymDayScreen(dayId = dayId, onBack = { navController.popBackStack() })
+            val location = GymLocation.valueOf(entry.arguments?.getString("location") ?: GymLocation.GYM.name)
+            val category = entry.arguments?.getString("category") ?: ""
+            GymCategoryScreen(location = location, category = category, onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.GYM_CALENDAR,
+            arguments = listOf(navArgument("location") { type = NavType.StringType }),
+        ) { entry ->
+            val location = GymLocation.valueOf(entry.arguments?.getString("location") ?: GymLocation.GYM.name)
+            GymCalendarScreen(location = location, onBack = { navController.popBackStack() })
+        }
+        composable(
+            Routes.GYM_SESSION,
+            arguments = listOf(navArgument("location") { type = NavType.StringType }),
+        ) { entry ->
+            val location = GymLocation.valueOf(entry.arguments?.getString("location") ?: GymLocation.GYM.name)
+            GymSessionScreen(location = location, onBack = { navController.popBackStack() })
+        }
+        composable(Routes.GYM_HISTORY) {
+            GymHistoryScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.TRACK_FINANCE) {
             FinanceScreen(onBack = { navController.popBackStack() })

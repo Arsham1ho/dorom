@@ -82,7 +82,7 @@ private fun UnlockedJournal(modifier: Modifier = Modifier) {
         item {
             DoromCard(modifier = Modifier.fillMaxWidth()) {
                 Column {
-                    OutlinedTextField(
+                    OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                         value = draft,
                         onValueChange = { draft = it },
                         label = { Text("What's on your mind?") },

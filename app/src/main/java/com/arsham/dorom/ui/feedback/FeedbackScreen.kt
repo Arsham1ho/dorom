@@ -35,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.DoromCard
 import com.arsham.dorom.ui.components.ProgressRing
+import com.arsham.dorom.ui.components.RecordingWaveform
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.TopBarWithBack
 import com.arsham.dorom.ui.theme.DataText
@@ -98,7 +99,7 @@ fun FeedbackScreen(onBack: () -> Unit) {
             item {
                 Column {
                     SectionHeader(title = "In your words")
-                    OutlinedTextField(
+                    OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                         value = text,
                         onValueChange = { text = it },
                         modifier = Modifier.fillMaxWidth().height(160.dp),
@@ -130,6 +131,13 @@ fun FeedbackScreen(onBack: () -> Unit) {
                             Icon(if (isRecording) Icons.Filled.Stop else Icons.Filled.Mic, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                             Text(if (isRecording) "Stop recording" else "Record voice feedback", style = MaterialTheme.typography.titleMedium)
                         }
+                    }
+                    if (isRecording) {
+                        RecordingWaveform(
+                            isRecording = true,
+                            getAmplitude = { recorder.currentAmplitude() },
+                            modifier = Modifier.padding(top = 10.dp),
+                        )
                     }
                     review?.feedbackAudioPath?.let { path ->
                         DoromCard(

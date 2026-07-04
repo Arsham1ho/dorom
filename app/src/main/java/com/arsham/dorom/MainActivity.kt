@@ -76,10 +76,16 @@ class MainActivity : FragmentActivity() {
                             DoromBottomBar(
                                 currentRoute = currentRoute,
                                 onNavigate = { route ->
+                                    // Deliberately simple: always collapse back to a single fresh
+                                    // entry for the tapped tab. The standard saveState/restoreState
+                                    // bottom-nav recipe is built for nested per-tab graphs; in our
+                                    // flat single graph it silently no-ops when the tapped tab IS
+                                    // the graph's start destination (Home) but isn't currently on
+                                    // top of the back stack — which is exactly why "Home" could
+                                    // appear to do nothing from a pushed screen like Settings.
                                     navController.navigate(route) {
-                                        popUpTo(Routes.HOME) { inclusive = false; saveState = true }
+                                        popUpTo(Routes.HOME) { inclusive = (route == Routes.HOME) }
                                         launchSingleTop = true
-                                        restoreState = true
                                     }
                                 },
                             )

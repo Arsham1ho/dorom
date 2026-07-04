@@ -79,8 +79,8 @@ private fun CourseEditor(onSave: (String, Int) -> Unit, onCancel: () -> Unit) {
     var total by remember { mutableStateOf("") }
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Course name") }, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = name, onValueChange = { name = it }, label = { Text("Course name") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
                 value = total, onValueChange = { total = it.filter(Char::isDigit) }, label = { Text("Total lessons") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
