@@ -1,10 +1,14 @@
 package com.arsham.dorom.ui.theme
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
@@ -47,6 +51,17 @@ fun DoromTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, content: @Composable () 
         ThemeMode.DARK -> true
         ThemeMode.LIGHT -> false
     }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val activity = view.context as? Activity ?: return@SideEffect
+            val controller = WindowCompat.getInsetsController(activity.window, view)
+            controller.isAppearanceLightStatusBars = !useDark
+            controller.isAppearanceLightNavigationBars = !useDark
+        }
+    }
+
     MaterialTheme(
         colorScheme = if (useDark) DoromDarkScheme else DoromLightScheme,
         typography = DoromTypography,

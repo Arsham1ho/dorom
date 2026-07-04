@@ -26,8 +26,8 @@ object Routes {
 data class BottomDestination(val route: String, val label: String)
 
 val BottomDestinations = listOf(
-    BottomDestination(Routes.HOME, "Home"),
-    BottomDestination(Routes.PLAN, "Plan"),
     BottomDestination(Routes.TRACK, "Track"),
     BottomDestination(Routes.JOURNAL, "Journal"),
+    BottomDestination(Routes.HOME, "Home"),
+    BottomDestination(Routes.PLAN, "Plan"),
 )
