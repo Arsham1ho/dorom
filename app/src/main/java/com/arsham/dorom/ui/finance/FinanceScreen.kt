@@ -139,9 +139,12 @@ private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -
                     )
                 }
             }
-            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier.padding(top = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 val categories = if (type == TransactionType.INCOME) INCOME_CATEGORIES else EXPENSE_CATEGORIES
-                categories.forEach { c ->
+                items(categories) { c ->
                     Tag(text = c, filled = category == c, modifier = Modifier.doromClickable { category = c })
                 }
             }

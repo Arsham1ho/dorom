@@ -1,9 +1,12 @@
 package com.arsham.dorom.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,16 +17,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.arsham.dorom.ui.theme.CardShape
 import com.arsham.dorom.ui.theme.ChipShape
-import com.arsham.dorom.ui.theme.InkSurface
 import com.arsham.dorom.ui.theme.doromClickable
 
-/** Flat, outlined-free card — no shadow, no gradient. A solid fill carries the "hand-drawn" feel. */
+/** Flat card with a visible hairline border — no shadow, no gradient; the outline carries the boundary. */
 @Composable
 fun DoromCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     shape: RoundedCornerShape = CardShape,
-    containerColor: Color = InkSurface,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    borderColor: Color = MaterialTheme.colorScheme.outline,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable () -> Unit,
 ) {
@@ -31,6 +34,7 @@ fun DoromCard(
         modifier = modifier
             .clip(shape)
             .background(containerColor)
+            .border(BorderStroke(1.dp, borderColor), shape)
             .then(if (onClick != null) Modifier.doromClickable(onClick) else Modifier)
             .padding(contentPadding)
     ) {
@@ -50,12 +54,14 @@ fun Tag(
         modifier = modifier
             .clip(ChipShape)
             .background(if (filled) accent else Color.Transparent)
+            .then(if (!filled) Modifier.border(BorderStroke(1.dp, accent.copy(alpha = 0.5f)), ChipShape) else Modifier)
             .padding(horizontal = 10.dp, vertical = 5.dp),
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelMedium,
             color = if (filled) MaterialTheme.colorScheme.onPrimary else accent,
+            maxLines = 1,
         )
     }
 }
@@ -69,5 +75,29 @@ fun PressableSurface(
 ) {
     Box(modifier = modifier.doromClickable(onClick)) {
         content()
+    }
+}
+
+/** Icon rendered inside a solid tinted rounded-square badge — used across hub tiles/quick links for visual weight. */
+@Composable
+fun IconBadge(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    size: androidx.compose.ui.unit.Dp = 44.dp,
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(RoundedCornerShape(12.dp))
+            .background(tint.copy(alpha = 0.16f)),
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.size(size * 0.55f),
+        )
     }
 }

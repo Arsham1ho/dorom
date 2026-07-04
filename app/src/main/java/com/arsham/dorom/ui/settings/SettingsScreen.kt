@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -20,8 +21,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.settings.DoromSettings
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.DoromCard
+import com.arsham.dorom.ui.components.Tag
 import com.arsham.dorom.ui.components.TimeField
 import com.arsham.dorom.ui.components.TopBarWithBack
+import com.arsham.dorom.ui.theme.ThemeMode
+import com.arsham.dorom.ui.theme.doromClickable
 import kotlinx.coroutines.launch
 
 @Composable
@@ -38,6 +42,22 @@ fun SettingsScreen(onBack: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            item {
+                DoromCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Text("Appearance", style = MaterialTheme.typography.titleMedium)
+                        Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ThemeMode.entries.forEach { mode ->
+                                Tag(
+                                    text = mode.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    filled = settings.themeMode == mode,
+                                    modifier = Modifier.doromClickable { scope.launch { container.settingsRepository.setThemeMode(mode) } },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
             item {
                 DoromCard(modifier = Modifier.fillMaxWidth()) {
                     Column {

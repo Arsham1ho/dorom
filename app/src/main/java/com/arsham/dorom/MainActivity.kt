@@ -20,8 +20,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.arsham.dorom.data.settings.DoromSettings
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.navigation.DoromBottomBar
 import com.arsham.dorom.ui.navigation.DoromNavHost
@@ -48,7 +50,8 @@ class MainActivity : FragmentActivity() {
         val container = (application as DoromApp).container
 
         setContent {
-            DoromTheme {
+            val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = DoromSettings())
+            DoromTheme(themeMode = settings.themeMode) {
                 CompositionLocalProvider(LocalAppContainer provides container) {
                     val navController = rememberNavController()
                     val backStackEntry by navController.currentBackStackEntryAsState()
