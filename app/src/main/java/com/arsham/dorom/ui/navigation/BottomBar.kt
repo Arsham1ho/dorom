@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,8 +35,10 @@ private fun iconFor(route: String): ImageVector = when (route) {
 }
 
 @Composable
-fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
+fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit, modifier: Modifier = Modifier) {
+    // Background spans the full width including behind the gesture nav area; only the
+    // tappable row content is inset above it, so there's no dead black strip at the bottom.
+    Column(modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
         androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -45,6 +48,7 @@ fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .navigationBarsPadding()
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
