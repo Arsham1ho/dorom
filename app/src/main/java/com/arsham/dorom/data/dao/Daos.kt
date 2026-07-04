@@ -15,6 +15,7 @@ import com.arsham.dorom.data.entity.GuitarTabImage
 import com.arsham.dorom.data.entity.JournalEntry
 import com.arsham.dorom.data.entity.LongTermGoal
 import com.arsham.dorom.data.entity.MoneyTransaction
+import com.arsham.dorom.data.entity.MoodEntry
 import com.arsham.dorom.data.entity.PlanTask
 import com.arsham.dorom.data.entity.TimeMarker
 import com.arsham.dorom.data.entity.WeeklyPlan
@@ -207,4 +208,19 @@ interface FinanceDao {
 
     @Delete
     suspend fun deleteTransaction(transaction: MoneyTransaction)
+}
+
+@Dao
+interface MoodDao {
+    @Query("SELECT * FROM mood_entry ORDER BY timestampEpochMillis DESC")
+    fun observeAll(): Flow<List<MoodEntry>>
+
+    @Query("SELECT * FROM mood_entry WHERE timestampEpochMillis >= :sinceEpochMillis ORDER BY timestampEpochMillis DESC")
+    fun observeSince(sinceEpochMillis: Long): Flow<List<MoodEntry>>
+
+    @Insert
+    suspend fun insert(entry: MoodEntry): Long
+
+    @Delete
+    suspend fun delete(entry: MoodEntry)
 }

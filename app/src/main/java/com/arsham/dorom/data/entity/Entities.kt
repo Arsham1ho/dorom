@@ -153,3 +153,11 @@ data class MoneyTransaction(
     val amount: Double,
     val note: String = "",
 )
+
+@Entity(tableName = "mood_entry")
+data class MoodEntry(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val emoji: String,
+    val timestampEpochMillis: Long,
+    val note: String = "",
+)
