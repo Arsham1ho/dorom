@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Dorom" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@color/ink_background</item>
+        <item name="android:navigationBarColor">@color/ink_background</item>
+        <item name="android:windowBackground">@color/ink_background</item>
+    </style>
+
+    <style name="Theme.Dorom.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/ink_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Dorom</item>
+    </style>
+</resources>
