@@ -22,6 +22,7 @@ import com.arsham.dorom.ui.history.HistoryScreen
 import com.arsham.dorom.ui.home.HomeScreen
 import com.arsham.dorom.ui.journal.JournalHubScreen
 import com.arsham.dorom.ui.journal.PersonalJournalScreen
+import com.arsham.dorom.ui.mood.MoodReportScreen
 import com.arsham.dorom.ui.plan.PlanScreen
 import com.arsham.dorom.ui.settings.SettingsScreen
 import com.arsham.dorom.ui.timemarkers.TimeMarkersScreen
@@ -105,6 +106,9 @@ fun DoromNavHost(navController: NavHostController, startDestination: String) {
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.MOOD_REPORT) {
+            MoodReportScreen()
         }
     }
 }

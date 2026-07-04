@@ -2,9 +2,10 @@ package com.arsham.dorom.ui.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +33,7 @@ private fun iconFor(route: String): ImageVector = when (route) {
     Routes.PLAN -> Icons.Filled.CalendarMonth
     Routes.TRACK -> Icons.Filled.Insights
     Routes.JOURNAL -> Icons.Filled.AutoStories
+    Routes.MOOD_REPORT -> Icons.Filled.Mood
     else -> Icons.Filled.Home
 }
 
@@ -39,7 +42,7 @@ fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit, modifier
     // Background spans the full width including behind the gesture nav area; only the
     // tappable row content is inset above it, so there's no dead black strip at the bottom.
     Column(modifier = modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
-        androidx.compose.foundation.layout.Box(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
@@ -49,15 +52,18 @@ fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit, modifier
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+                .height(64.dp),
         ) {
             BottomDestinations.forEach { dest ->
                 val selected = currentRoute == dest.route
                 BottomBarItem(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
                     icon = iconFor(dest.route),
                     label = dest.label,
                     selected = selected,
+                    // Re-navigating to the already-selected tab is a harmless no-op, but always
+                    // routing through the same call keeps behavior identical for every tab —
+                    // no special-casing that could silently swallow a tap.
                     onClick = { onNavigate(dest.route) },
                 )
             }
@@ -66,16 +72,19 @@ fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit, modifier
 }
 
 @Composable
-private fun RowScope.BottomBarItem(icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
+private fun BottomBarItem(modifier: Modifier, icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
     val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
     val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f) else androidx.compose.ui.graphics.Color.Transparent
+    // The clickable area fills this entire weighted slot (not just the wrapped icon+label),
+    // so there's no dead space between tabs where a tap could silently miss.
     Column(
-        modifier = Modifier
+        modifier = modifier
+            .padding(horizontal = 3.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(12.dp))
             .background(bg)
-            .doromClickable(onClick)
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .doromClickable(onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(imageVector = icon, contentDescription = label, tint = color)
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = color)

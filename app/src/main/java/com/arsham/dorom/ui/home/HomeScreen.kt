@@ -31,6 +31,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,6 +56,7 @@ import com.arsham.dorom.ui.components.ProgressRing
 import com.arsham.dorom.ui.components.PressableSurface
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.scoreColor
+import com.arsham.dorom.ui.mood.MoodPickerRow
 import com.arsham.dorom.ui.navigation.Routes
 import com.arsham.dorom.ui.theme.BadgeBlue
 import com.arsham.dorom.ui.theme.BadgeGold
@@ -63,6 +68,7 @@ import com.arsham.dorom.ui.theme.Terracotta
 import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.util.pretty
 import com.arsham.dorom.util.todayString
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -101,6 +107,8 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
                 onClick = { onNavigate(Routes.PLAN) },
             )
         }
+
+        item { MoodQuickLogCard(onViewReport = { onNavigate(Routes.MOOD_REPORT) }) }
 
         item { WeekGlanceCard(recentReviews) }
 
@@ -299,6 +307,41 @@ private fun WeekGlanceCard(recentReviews: List<DailyReview>) {
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MoodQuickLogCard(onViewReport: () -> Unit) {
+    val container = LocalAppContainer.current
+    val scope = rememberCoroutineScope()
+    var justLogged by remember { mutableStateOf<String?>(null) }
+
+    DoromCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            SectionHeader(title = "How are you feeling right now?") {
+                Text(
+                    "Full report",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.doromClickable(onViewReport),
+                )
+            }
+            MoodPickerRow(
+                modifier = Modifier.padding(top = 10.dp),
+                onLog = { emoji, note ->
+                    justLogged = emoji
+                    scope.launch { container.moodRepository.logMood(emoji, note) }
+                },
+            )
+            justLogged?.let {
+                Text(
+                    "Logged $it just now",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Sage,
+                    modifier = Modifier.padding(top = 10.dp),
+                )
             }
         }
     }

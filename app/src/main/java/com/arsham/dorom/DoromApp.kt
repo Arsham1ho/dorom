@@ -7,6 +7,7 @@ import com.arsham.dorom.data.repository.FinanceRepository
 import com.arsham.dorom.data.repository.GoalsRepository
 import com.arsham.dorom.data.repository.GuitarRepository
 import com.arsham.dorom.data.repository.JournalRepository
+import com.arsham.dorom.data.repository.MoodRepository
 import com.arsham.dorom.data.repository.PlanRepository
 import com.arsham.dorom.data.repository.ReviewRepository
 import com.arsham.dorom.data.repository.TimeMarkerRepository
@@ -43,4 +44,5 @@ class AppContainer(app: Application) {
     val reviewRepository = ReviewRepository(db.reviewDao(), app)
     val journalRepository = JournalRepository(db.journalDao())
     val financeRepository = FinanceRepository(db.financeDao())
+    val moodRepository = MoodRepository(db.moodDao())
 }

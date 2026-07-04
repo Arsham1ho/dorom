@@ -18,6 +18,7 @@ object Routes {
     const val PERSONAL_JOURNAL = "personal_journal"
     const val HISTORY = "history"
     const val SETTINGS = "settings"
+    const val MOOD_REPORT = "mood_report"
 
     fun gymDay(dayId: Long) = "track_gym_day/$dayId"
     fun guitarSong(songId: Long) = "track_guitar_song/$songId"
@@ -30,4 +31,5 @@ val BottomDestinations = listOf(
     BottomDestination(Routes.JOURNAL, "Journal"),
     BottomDestination(Routes.HOME, "Home"),
     BottomDestination(Routes.PLAN, "Plan"),
+    BottomDestination(Routes.MOOD_REPORT, "Mood"),
 )

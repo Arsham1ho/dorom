@@ -11,6 +11,7 @@ import com.arsham.dorom.data.dao.FinanceDao
 import com.arsham.dorom.data.dao.GoalDao
 import com.arsham.dorom.data.dao.GuitarDao
 import com.arsham.dorom.data.dao.JournalDao
+import com.arsham.dorom.data.dao.MoodDao
 import com.arsham.dorom.data.dao.PlanDao
 import com.arsham.dorom.data.dao.ReviewDao
 import com.arsham.dorom.data.dao.TimeMarkerDao
@@ -25,6 +26,7 @@ import com.arsham.dorom.data.entity.GuitarTabImage
 import com.arsham.dorom.data.entity.JournalEntry
 import com.arsham.dorom.data.entity.LongTermGoal
 import com.arsham.dorom.data.entity.MoneyTransaction
+import com.arsham.dorom.data.entity.MoodEntry
 import com.arsham.dorom.data.entity.PlanTask
 import com.arsham.dorom.data.entity.SongStatus
 import com.arsham.dorom.data.entity.TimeDirection
@@ -67,8 +69,9 @@ class Converters {
         DailyReview::class,
         JournalEntry::class,
         MoneyTransaction::class,
+        MoodEntry::class,
     ],
-    version = 1,
+    version = 3,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
@@ -83,12 +86,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun reviewDao(): ReviewDao
     abstract fun journalDao(): JournalDao
     abstract fun financeDao(): FinanceDao
+    abstract fun moodDao(): MoodDao
 
     companion object {
         @Volatile private var instance: AppDatabase? = null
 
         fun get(context: Context): AppDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(context, AppDatabase::class.java, "dorom.db")
+                .fallbackToDestructiveMigration(true)
                 .build()
                 .also { instance = it }
         }
