@@ -80,7 +80,7 @@ fun RecordingWaveform(
 }
 
 @Composable
-private fun PulsingRecDot() {
+fun PulsingRecDot() {
     val pulse = rememberPulse()
     androidx.compose.foundation.layout.Box(
         modifier = Modifier

@@ -93,7 +93,7 @@ fun DoromNavHost(navController: NavHostController, startDestination: String) {
             arguments = listOf(navArgument("location") { type = NavType.StringType }),
         ) { entry ->
             val location = GymLocation.valueOf(entry.arguments?.getString("location") ?: GymLocation.GYM.name)
-            GymSessionScreen(location = location, onBack = { navController.popBackStack() })
+            GymSessionScreen(location = location, onBack = { navController.popBackStack() }, onNavigate = { navController.navigate(it) })
         }
         composable(Routes.GYM_HISTORY) {
             GymHistoryScreen(onBack = { navController.popBackStack() })

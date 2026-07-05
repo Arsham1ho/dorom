@@ -1,7 +1,9 @@
 package com.arsham.dorom.ui.gym
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -9,16 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,8 +29,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.GYM_CATEGORIES
@@ -48,7 +49,8 @@ import com.arsham.dorom.ui.theme.Sage
 import com.arsham.dorom.ui.theme.Terracotta
 import com.arsham.dorom.util.todayString
 
-private fun categoryTint(index: Int): Color = listOf(Terracotta, BadgeBlue, BadgeViolet, BadgeGold, Sage)[index % 5]
+fun categoryTint(index: Int): Color = listOf(Terracotta, BadgeBlue, BadgeViolet, BadgeGold, Sage)[index % 5]
+fun categoryTint(category: String): Color = categoryTint(GYM_CATEGORIES.indexOf(category).coerceAtLeast(0))
 
 @Composable
 fun GymScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
@@ -94,14 +96,14 @@ fun GymScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
                 item {
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         LocationCard(
-                            icon = Icons.Filled.FitnessCenter,
+                            location = GymLocation.GYM,
                             label = "Gym",
                             tint = Terracotta,
                             onClick = { selectedLocation = GymLocation.GYM },
                             modifier = Modifier.weight(1f),
                         )
                         LocationCard(
-                            icon = Icons.Filled.Home,
+                            location = GymLocation.HOME_GYM,
                             label = "Home Gym",
                             tint = Sage,
                             onClick = { selectedLocation = GymLocation.HOME_GYM },
@@ -149,7 +151,7 @@ fun GymScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
                                 onClick = { onNavigate(Routes.gymCategory(location.name, category)) },
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    IconBadge(icon = Icons.AutoMirrored.Filled.DirectionsRun, tint = categoryTint(i), size = 40.dp)
+                                    GlyphBadge(tint = categoryTint(i)) { MuscleGlyph(category = category, tint = categoryTint(i), modifier = Modifier.size(26.dp)) }
                                     Text(category, style = MaterialTheme.typography.titleMedium)
                                 }
                             }
@@ -162,11 +164,22 @@ fun GymScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
 }
 
 @Composable
-private fun LocationCard(icon: ImageVector, label: String, tint: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    DoromCard(onClick = onClick, modifier = modifier.height(120.dp)) {
+private fun LocationCard(location: GymLocation, label: String, tint: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    DoromCard(onClick = onClick, modifier = modifier.height(128.dp)) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-            IconBadge(icon = icon, tint = tint)
+            GlyphBadge(tint = tint, size = 56.dp) { GymLocationGlyph(location = location, tint = tint, modifier = Modifier.size(34.dp)) }
             Text(label, style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
         }
+    }
+}
+
+/** Tinted rounded backdrop for a custom glyph, matching IconBadge's footprint. */
+@Composable
+private fun GlyphBadge(tint: Color, size: Dp = 44.dp, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier.size(size).clip(com.arsham.dorom.ui.theme.CardShape).background(tint.copy(alpha = 0.16f)),
+        contentAlignment = Alignment.Center,
+    ) {
+        content()
     }
 }

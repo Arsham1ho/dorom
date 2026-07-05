@@ -19,7 +19,15 @@ class GymRepository(
     fun observeExercises(location: GymLocation, category: String): Flow<List<GymExercise>> =
         dao.observeExercises(location, category)
 
-    suspend fun addExercise(location: GymLocation, category: String, name: String, imageUri: Uri?) {
+    suspend fun addExercise(
+        location: GymLocation,
+        category: String,
+        name: String,
+        imageUri: Uri?,
+        defaultSets: Int,
+        defaultReps: Int,
+        defaultWeight: Double,
+    ) {
         val imagePath = imageUri?.let { copyImage(it) }
         dao.insertExercise(
             GymExercise(
@@ -27,7 +35,35 @@ class GymRepository(
                 category = category,
                 name = name,
                 imagePath = imagePath,
+                defaultSets = defaultSets,
+                defaultReps = defaultReps,
+                defaultWeight = defaultWeight,
                 createdAtEpochMillis = System.currentTimeMillis(),
+            )
+        )
+    }
+
+    suspend fun updateExercise(
+        exercise: GymExercise,
+        name: String,
+        imageUri: Uri?,
+        defaultSets: Int,
+        defaultReps: Int,
+        defaultWeight: Double,
+    ) {
+        val newImagePath = if (imageUri != null) {
+            exercise.imagePath?.let { File(it).delete() }
+            copyImage(imageUri)
+        } else {
+            exercise.imagePath
+        }
+        dao.updateExercise(
+            exercise.copy(
+                name = name,
+                imagePath = newImagePath,
+                defaultSets = defaultSets,
+                defaultReps = defaultReps,
+                defaultWeight = defaultWeight,
             )
         )
     }

@@ -1,15 +1,26 @@
 package com.arsham.dorom.ui.gym
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -24,6 +35,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.GymExercise
@@ -33,19 +45,19 @@ import com.arsham.dorom.data.entity.GymSessionSet
 import com.arsham.dorom.ui.LocalAppContainer
 import com.arsham.dorom.ui.components.DoromCard
 import com.arsham.dorom.ui.components.EmptyState
-import com.arsham.dorom.ui.components.SectionHeader
-import com.arsham.dorom.ui.components.TopBarWithBack
+import com.arsham.dorom.ui.components.PulsingRecDot
+import com.arsham.dorom.ui.navigation.Routes
 import com.arsham.dorom.ui.theme.DataText
 import com.arsham.dorom.ui.theme.Sage
+import com.arsham.dorom.ui.theme.Terracotta
+import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.util.todayString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FitnessCenter
 
 @Composable
-fun GymSessionScreen(location: GymLocation, onBack: () -> Unit) {
+fun GymSessionScreen(location: GymLocation, onBack: () -> Unit, onNavigate: (String) -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     val today = remember { todayString() }
@@ -88,7 +100,14 @@ fun GymSessionScreen(location: GymLocation, onBack: () -> Unit) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBarWithBack(title = "Workout", onBack = onBack)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(20.dp, 16.dp, 12.dp, 0.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            IconButton(onClick = onBack) { Icon(Icons.Filled.Close, contentDescription = "Close") }
+            IconButton(onClick = { onNavigate(Routes.GYM_HISTORY) }) { Icon(Icons.Filled.History, contentDescription = "History") }
+        }
 
         if (!loaded) return@Column
 
@@ -113,99 +132,175 @@ fun GymSessionScreen(location: GymLocation, onBack: () -> Unit) {
             return@Column
         }
 
-        if (!isActive) {
-            LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                item { SectionHeader(title = "Today's exercises, in order") }
-                items(exercises) { ex -> DoromCard(modifier = Modifier.fillMaxWidth()) { Text(ex.name, style = MaterialTheme.typography.titleMedium) } }
-                item {
-                    Button(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        onClick = {
-                            scope.launch {
-                                val s = container.gymRepository.startSession(today, location)
-                                session = s
-                                lastEventMillis = s.startEpochMillis
-                                isActive = true
-                            }
-                        },
-                    ) { Text("Let's GO! 💪") }
-                }
-            }
-            return@Column
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(20.dp, 8.dp, 20.dp, 0.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            if (isActive) PulsingRecDot()
+            Text(formatDuration(sessionElapsedSec), style = DataText.hero, color = MaterialTheme.colorScheme.primary)
         }
 
-        // Active session
-        val exercise = exercises.getOrNull(currentIndex)
-        var weightText by remember(currentIndex) { mutableStateOf("") }
-        var repsText by remember(currentIndex) { mutableStateOf("") }
-        val setsForExercise = exercise?.let { ex -> sets.filter { it.exerciseId == ex.id } } ?: emptyList()
+        val tint = categoryTint(location.ordinal)
 
-        LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(formatDuration(sessionElapsedSec), style = DataText.large, color = MaterialTheme.colorScheme.primary)
-                    Text("${currentIndex + 1}/${exercises.size}", style = DataText.medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            if (exercise != null) {
-                item {
-                    DoromCard(modifier = Modifier.fillMaxWidth()) {
-                        Column {
-                            Text(exercise.name, style = MaterialTheme.typography.headlineMedium)
-                            Text("Set $setNumber", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                OutlinedTextField(
-                                    shape = com.arsham.dorom.ui.theme.InputShape,
-                                    value = weightText, onValueChange = { weightText = it.filter { c -> c.isDigit() || c == '.' } },
-                                    label = { Text("Weight") }, modifier = Modifier.weight(1f),
-                                )
-                                OutlinedTextField(
-                                    shape = com.arsham.dorom.ui.theme.InputShape,
-                                    value = repsText, onValueChange = { repsText = it.filter(Char::isDigit) },
-                                    label = { Text("Reps") }, modifier = Modifier.weight(1f),
-                                )
-                            }
-                            Button(
-                                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
-                                onClick = {
-                                    val w = weightText.toDoubleOrNull() ?: 0.0
-                                    val r = repsText.toIntOrNull() ?: 0
+        Box(modifier = Modifier.fillMaxSize()) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(20.dp, 16.dp, 20.dp, 100.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                item { GymSectionHeader(title = "${exercises.size} exercises") }
+
+                itemsIndexed(exercises) { index, exercise ->
+                    val setsForExercise = sets.filter { it.exerciseId == exercise.id }
+                    when {
+                        index < currentIndex || (index == currentIndex && !isActive && setsForExercise.isNotEmpty() && setNumber > exercise.defaultSets) -> {
+                            CompletedExerciseRow(exercise = exercise, tint = tint, loggedSets = setsForExercise.size)
+                        }
+                        index == currentIndex && isActive -> {
+                            ActiveExerciseCard(
+                                exercise = exercise,
+                                tint = tint,
+                                setNumber = setNumber,
+                                setsForExercise = setsForExercise,
+                                hasNext = index < exercises.lastIndex,
+                                onLogSet = { weight, reps ->
                                     val now = System.currentTimeMillis()
                                     val rest = ((now - lastEventMillis) / 1000).toInt()
                                     val s = session
                                     if (s != null) {
-                                        scope.launch { container.gymRepository.logSet(s.id, exercise.id, exercise.name, setNumber, w, r, rest) }
+                                        scope.launch { container.gymRepository.logSet(s.id, exercise.id, exercise.name, setNumber, weight, reps, rest) }
                                     }
                                     lastEventMillis = now
                                     setNumber++
-                                    weightText = ""; repsText = ""
                                 },
-                            ) { Text("Log set") }
+                                onNext = { currentIndex++; setNumber = 1 },
+                            )
                         }
+                        else -> UpcomingExerciseRow(exercise = exercise, tint = tint)
                     }
                 }
-                if (setsForExercise.isNotEmpty()) {
-                    item {
-                        Text(
-                            setsForExercise.joinToString("   ") { "${it.weight}×${it.reps}" },
-                            style = DataText.small,
-                            color = Sage,
-                        )
-                    }
-                }
-                item {
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        if (currentIndex < exercises.lastIndex) {
-                            OutlinedButton(onClick = { currentIndex++; setNumber = 1 }) { Text("Next exercise") }
+            }
+
+            if (!isActive) {
+                Button(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .padding(20.dp),
+                    onClick = {
+                        scope.launch {
+                            val s = container.gymRepository.startSession(today, location)
+                            session = s
+                            lastEventMillis = s.startEpochMillis
+                            isActive = true
                         }
-                        Button(onClick = {
+                    },
+                ) { Text("Let's GO! 💪") }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp)
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .doromClickable {
                             val s = session
                             if (s != null) scope.launch { container.gymRepository.finishSession(s) }
                             isActive = false
                             isFinished = true
-                        }) { Text("Finish") }
-                    }
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.Check, contentDescription = "Finish", tint = MaterialTheme.colorScheme.onPrimary)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CompletedExerciseRow(exercise: GymExercise, tint: androidx.compose.ui.graphics.Color, loggedSets: Int) {
+    DoromCard(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            ExerciseThumb(exercise = exercise, tint = Sage)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(exercise.name, style = MaterialTheme.typography.titleMedium)
+                Text("$loggedSets sets logged", style = MaterialTheme.typography.bodyMedium, color = Sage)
+            }
+            Icon(Icons.Filled.Check, contentDescription = "Done", tint = Sage)
+        }
+    }
+}
+
+@Composable
+private fun UpcomingExerciseRow(exercise: GymExercise, tint: androidx.compose.ui.graphics.Color) {
+    DoromCard(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            ExerciseThumb(exercise = exercise, tint = tint)
+            Column {
+                Text(exercise.name, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    prescriptionLabel(exercise.defaultSets, exercise.defaultReps, exercise.defaultWeight),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ActiveExerciseCard(
+    exercise: GymExercise,
+    tint: androidx.compose.ui.graphics.Color,
+    setNumber: Int,
+    setsForExercise: List<GymSessionSet>,
+    hasNext: Boolean,
+    onLogSet: (Double, Int) -> Unit,
+    onNext: () -> Unit,
+) {
+    var weightText by remember(exercise.id, setNumber) { mutableStateOf(if (exercise.defaultWeight > 0) exercise.defaultWeight.toString() else "") }
+    var repsText by remember(exercise.id, setNumber) { mutableStateOf(exercise.defaultReps.toString()) }
+
+    DoromCard(modifier = Modifier.fillMaxWidth(), borderColor = Terracotta) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                ExerciseThumb(exercise = exercise, tint = tint)
+                Column {
+                    Text(exercise.name, style = MaterialTheme.typography.titleLarge)
+                    Text("Set $setNumber / ${exercise.defaultSets}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(
+                    shape = com.arsham.dorom.ui.theme.InputShape,
+                    value = weightText, onValueChange = { weightText = it.filter { c -> c.isDigit() || c == '.' } },
+                    label = { Text("Weight") }, modifier = Modifier.weight(1f),
+                )
+                OutlinedTextField(
+                    shape = com.arsham.dorom.ui.theme.InputShape,
+                    value = repsText, onValueChange = { repsText = it.filter(Char::isDigit) },
+                    label = { Text("Reps") }, modifier = Modifier.weight(1f),
+                )
+            }
+            Button(
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                onClick = {
+                    onLogSet(weightText.toDoubleOrNull() ?: 0.0, repsText.toIntOrNull() ?: 0)
+                },
+            ) { Text("Log set") }
+            if (setsForExercise.isNotEmpty()) {
+                Text(
+                    setsForExercise.joinToString("   ") { "${it.weight}×${it.reps}" },
+                    style = DataText.small,
+                    color = Sage,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
+            if (hasNext) {
+                OutlinedButton(modifier = Modifier.padding(top = 10.dp), onClick = onNext) { Text("Next exercise") }
             }
         }
     }

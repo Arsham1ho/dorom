@@ -128,6 +128,9 @@ interface GymDao {
     @Insert
     suspend fun insertExercise(exercise: GymExercise): Long
 
+    @Update
+    suspend fun updateExercise(exercise: GymExercise)
+
     @Delete
     suspend fun deleteExercise(exercise: GymExercise)
 

@@ -80,7 +80,7 @@ class Converters {
         MoneyTransaction::class,
         MoodEntry::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
