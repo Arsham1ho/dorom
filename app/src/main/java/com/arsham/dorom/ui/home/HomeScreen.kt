@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.Course
 import com.arsham.dorom.data.entity.DailyReview
+import com.arsham.dorom.data.entity.LongTermGoal
 import com.arsham.dorom.data.entity.TimeDirection
 import com.arsham.dorom.data.entity.TimeMarker
 import com.arsham.dorom.data.repository.MonthlyReport
@@ -89,6 +90,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val recentReviews by container.reviewRepository.observeRecentReviews(14).collectAsStateWithLifecycle(initialValue = emptyList())
     val markers by container.timeMarkerRepository.observeMarkers().collectAsStateWithLifecycle(initialValue = emptyList())
     val courses by container.courseRepository.observeCourses().collectAsStateWithLifecycle(initialValue = emptyList())
+    val goals by container.goalsRepository.observeGoals().collectAsStateWithLifecycle(initialValue = emptyList())
     val financeReport by container.financeRepository.observeMonthlyReport(yearMonthString()).collectAsStateWithLifecycle(
         initialValue = MonthlyReport(0.0, 0.0, 0.0, emptyMap(), 50),
     )
@@ -99,8 +101,9 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
     val streak = computeStreak(recentReviews)
     val upcomingMarkers = markers.sortedBy { kotlin.math.abs(it.targetEpochMillis - System.currentTimeMillis()) }
 
-    val snapshotPages = remember(financeReport, courses, upcomingMarkers) {
+    val snapshotPages = remember(financeReport, courses, upcomingMarkers, goals) {
         buildList {
+            if (goals.isNotEmpty()) add(SnapshotPage.Goals(goals))
             add(SnapshotPage.Finance(financeReport))
             add(SnapshotPage.Track(courses))
             upcomingMarkers.forEach { add(SnapshotPage.Marker(it)) }
@@ -392,6 +395,7 @@ private fun QuickLinkCard(link: QuickLink, onClick: () -> Unit) {
 }
 
 private sealed class SnapshotPage {
+    data class Goals(val goals: List<LongTermGoal>) : SnapshotPage()
     data class Finance(val report: MonthlyReport) : SnapshotPage()
     data class Track(val courses: List<Course>) : SnapshotPage()
     data class Marker(val marker: TimeMarker) : SnapshotPage()
@@ -409,6 +413,7 @@ private fun SnapshotCarousel(pages: List<SnapshotPage>, onNavigate: (String) -> 
         pageSpacing = 10.dp,
     ) { page ->
         when (val p = pages[page]) {
+            is SnapshotPage.Goals -> GoalsSnapshotCard(p.goals) { onNavigate(Routes.GOALS) }
             is SnapshotPage.Finance -> FinanceSnapshotCard(p.report) { onNavigate(Routes.TRACK_FINANCE) }
             is SnapshotPage.Track -> TrackSnapshotCard(p.courses) { onNavigate(Routes.TRACK) }
             is SnapshotPage.Marker -> MarkerSnapshotCard(p.marker) { onNavigate(Routes.TRACK_TIME_MARKERS) }
@@ -433,6 +438,25 @@ private fun SnapshotCarousel(pages: List<SnapshotPage>, onNavigate: (String) -> 
                         )
                     ),
             )
+        }
+    }
+}
+
+@Composable
+private fun GoalsSnapshotCard(goals: List<LongTermGoal>, onClick: () -> Unit) {
+    val active = goals.filter { it.progressPercent < 100 }.ifEmpty { goals }
+    val topGoal = active.minByOrNull { it.targetDate ?: "9999-99-99" } ?: active.first()
+    DoromCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(120.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            ProgressRing(percent = topGoal.progressPercent / 100f, size = 64.dp, strokeWidth = 6.dp)
+            Column {
+                Text(
+                    "${goals.size} long-term goal${if (goals.size == 1) "" else "s"}",
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                )
+                Text(topGoal.title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            }
         }
     }
 }

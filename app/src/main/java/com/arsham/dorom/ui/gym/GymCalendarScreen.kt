@@ -7,19 +7,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,38 +37,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.GYM_CATEGORIES
-import com.arsham.dorom.data.entity.GymExercise
 import com.arsham.dorom.data.entity.GymLocation
 import com.arsham.dorom.ui.LocalAppContainer
-import com.arsham.dorom.ui.components.DateField
 import com.arsham.dorom.ui.components.DoromCard
-import com.arsham.dorom.ui.components.IconBadge
-import com.arsham.dorom.ui.components.LocalFileImage
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.TopBarWithBack
 import com.arsham.dorom.ui.theme.CardShape
+import com.arsham.dorom.ui.theme.Sage
 import com.arsham.dorom.ui.theme.Terracotta
 import com.arsham.dorom.ui.theme.doromClickable
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun GymCalendarScreen(location: GymLocation, onBack: () -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     var date by remember { mutableStateOf(LocalDate.now()) }
-    val selectedIds = remember { mutableStateListOf<Long>() }
-    var saved by remember { mutableStateOf(false) }
+    val selectedCategories = remember { mutableStateListOf<String>() }
+    val plannedDates by container.gymRepository.observePlannedDates().collectAsStateWithLifecycle(initialValue = emptyList())
 
     LaunchedEffect(date) {
-        saved = false
         val scheduled = container.gymRepository.getScheduledExercises(date.toString())
-        selectedIds.clear()
-        selectedIds.addAll(scheduled.map { it.id })
+        selectedCategories.clear()
+        selectedCategories.addAll(scheduled.map { it.category }.distinct())
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -81,11 +80,16 @@ fun GymCalendarScreen(location: GymLocation, onBack: () -> Unit) {
                 DoromCard(modifier = Modifier.fillMaxWidth()) {
                     Column {
                         Text("Which day?", style = MaterialTheme.typography.titleMedium)
-                        DateField(
-                            label = "Date",
-                            date = date,
-                            onDateChange = { it?.let { picked -> date = picked } },
-                            modifier = Modifier.padding(top = 8.dp),
+                        Text(
+                            "Days with a dot already have a saved gym plan.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 2.dp, bottom = 10.dp),
+                        )
+                        MonthCalendar(
+                            selectedDate = date,
+                            plannedDates = plannedDates.toSet(),
+                            onSelectDate = { date = it },
                         )
                     }
                 }
@@ -93,42 +97,98 @@ fun GymCalendarScreen(location: GymLocation, onBack: () -> Unit) {
 
             item {
                 Column {
-                    SectionHeader(title = "Pick exercises for $date")
+                    SectionHeader(title = "Pick a plan for $date")
                     Text(
-                        "Tap a card to add or remove it from this day's plan.",
+                        "Tap the muscle groups you're training this day — every exercise saved under them comes along automatically.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
 
-            items(GYM_CATEGORIES) { category ->
-                CategoryPickerRow(
+            item {
+                CategoryGrid(
                     location = location,
-                    category = category,
-                    selectedIds = selectedIds,
-                    onToggle = { id -> if (selectedIds.contains(id)) selectedIds.remove(id) else selectedIds.add(id) },
+                    selectedCategories = selectedCategories,
+                    onToggle = { category ->
+                        if (selectedCategories.contains(category)) selectedCategories.remove(category) else selectedCategories.add(category)
+                    },
                 )
             }
 
             item {
-                Column {
-                    Button(
-                        modifier = Modifier.fillMaxWidth(),
-                        onClick = {
-                            scope.launch {
-                                container.gymRepository.setSchedule(date.toString(), selectedIds.toList())
-                                saved = true
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        scope.launch {
+                            val exerciseIds = selectedCategories.flatMap { category ->
+                                container.gymRepository.getExercises(location, category).map { it.id }
                             }
-                        },
-                    ) { Text("Save plan for this day (${selectedIds.size} selected)") }
-                    if (saved) {
-                        Text(
-                            "Saved ✓",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(top = 6.dp),
+                            container.gymRepository.setSchedule(date.toString(), exerciseIds)
+                            onBack()
+                        }
+                    },
+                ) { Text("Save plan for this day (${selectedCategories.size} selected)") }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthCalendar(
+    selectedDate: LocalDate,
+    plannedDates: Set<String>,
+    onSelectDate: (LocalDate) -> Unit,
+) {
+    var visibleMonth by remember(selectedDate) { mutableStateOf(YearMonth.from(selectedDate)) }
+    val today = remember { LocalDate.now() }
+
+    Column {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { visibleMonth = visibleMonth.minusMonths(1) }) {
+                Icon(Icons.Filled.KeyboardArrowLeft, contentDescription = "Previous month")
+            }
+            Text(visibleMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy")), style = MaterialTheme.typography.titleMedium)
+            IconButton(onClick = { visibleMonth = visibleMonth.plusMonths(1) }) {
+                Icon(Icons.Filled.KeyboardArrowRight, contentDescription = "Next month")
+            }
+        }
+
+        Row(modifier = Modifier.fillMaxWidth()) {
+            listOf("M", "T", "W", "T", "F", "S", "S").forEach { label ->
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                )
+            }
+        }
+
+        val firstOfMonth = visibleMonth.atDay(1)
+        val leadingBlanks = firstOfMonth.dayOfWeek.value - 1
+        val daysInMonth = visibleMonth.lengthOfMonth()
+        val totalCells = leadingBlanks + daysInMonth
+        val rows = (totalCells + 6) / 7
+
+        for (row in 0 until rows) {
+            Row(modifier = Modifier.fillMaxWidth()) {
+                for (col in 0..6) {
+                    val cellIndex = row * 7 + col
+                    val dayNumber = cellIndex - leadingBlanks + 1
+                    if (dayNumber in 1..daysInMonth) {
+                        val cellDate = visibleMonth.atDay(dayNumber)
+                        DayCell(
+                            day = dayNumber,
+                            isSelected = cellDate == selectedDate,
+                            isToday = cellDate == today,
+                            hasPlan = plannedDates.contains(cellDate.toString()),
+                            onClick = { onSelectDate(cellDate) },
+                            modifier = Modifier.weight(1f),
                         )
+                    } else {
+                        Box(modifier = Modifier.weight(1f))
                     }
                 }
             }
@@ -137,24 +197,31 @@ fun GymCalendarScreen(location: GymLocation, onBack: () -> Unit) {
 }
 
 @Composable
-private fun CategoryPickerRow(
-    location: GymLocation,
-    category: String,
-    selectedIds: List<Long>,
-    onToggle: (Long) -> Unit,
-) {
-    val container = LocalAppContainer.current
-    val exercises by container.gymRepository.observeExercises(location, category).collectAsStateWithLifecycle(initialValue = emptyList())
-    if (exercises.isEmpty()) return
-
-    Column {
-        Text(category, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        LazyRow(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(exercises) { exercise ->
-                SelectableExerciseCard(
-                    exercise = exercise,
-                    selected = selectedIds.contains(exercise.id),
-                    onClick = { onToggle(exercise.id) },
+private fun DayCell(day: Int, isSelected: Boolean, isToday: Boolean, hasPlan: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.aspectRatio(1f).padding(2.dp).doromClickable(onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CardShape)
+                .background(if (isSelected) Terracotta else Color.Transparent)
+                .border(BorderStroke(if (isToday && !isSelected) 1.5.dp else 0.dp, Terracotta), CardShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    day.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface,
+                )
+                Box(
+                    modifier = Modifier
+                        .padding(top = 2.dp)
+                        .size(5.dp)
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(if (hasPlan) (if (isSelected) Color.White else Sage) else Color.Transparent),
                 )
             }
         }
@@ -162,36 +229,61 @@ private fun CategoryPickerRow(
 }
 
 @Composable
-private fun SelectableExerciseCard(exercise: GymExercise, selected: Boolean, onClick: () -> Unit) {
-    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
-    val borderWidth = if (selected) 2.5.dp else 1.dp
-
-    Column(modifier = Modifier.width(104.dp).doromClickable(onClick)) {
-        Box(
-            modifier = Modifier
-                .size(104.dp)
-                .clip(CardShape)
-                .background(MaterialTheme.colorScheme.surface)
-                .border(BorderStroke(borderWidth, borderColor), CardShape),
-        ) {
-            if (exercise.imagePath != null) {
-                LocalFileImage(path = exercise.imagePath, contentDescription = exercise.name, modifier = Modifier.size(104.dp).clip(CardShape))
-            } else {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    IconBadge(icon = Icons.AutoMirrored.Filled.DirectionsRun, tint = Terracotta, size = 44.dp)
+private fun CategoryGrid(
+    location: GymLocation,
+    selectedCategories: List<String>,
+    onToggle: (String) -> Unit,
+) {
+    Column {
+        val rows = (GYM_CATEGORIES.size + 1) / 2
+        for (row in 0 until rows) {
+            Row(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                for (col in 0..1) {
+                    val index = row * 2 + col
+                    if (index < GYM_CATEGORIES.size) {
+                        val category = GYM_CATEGORIES[index]
+                        SelectableCategoryCard(
+                            category = category,
+                            tint = categoryTint(index),
+                            selected = selectedCategories.contains(category),
+                            onClick = { onToggle(category) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    } else {
+                        Box(modifier = Modifier.weight(1f))
+                    }
                 }
             }
-            if (selected) {
-                SelectedBadge(modifier = Modifier.align(Alignment.TopEnd).padding(6.dp))
-            }
         }
-        Text(
-            exercise.name,
-            style = MaterialTheme.typography.labelMedium,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 6.dp).width(104.dp),
-        )
+    }
+}
+
+@Composable
+private fun SelectableCategoryCard(category: String, tint: Color, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val borderColor = if (selected) Terracotta else MaterialTheme.colorScheme.outline
+    val borderWidth = if (selected) 2.5.dp else 1.dp
+
+    Box(
+        modifier = modifier
+            .height(88.dp)
+            .clip(CardShape)
+            .background(MaterialTheme.colorScheme.surface)
+            .border(BorderStroke(borderWidth, borderColor), CardShape)
+            .doromClickable(onClick)
+            .padding(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Box(
+                modifier = Modifier.size(44.dp).clip(CardShape).background(tint.copy(alpha = 0.16f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                MuscleGlyph(category = category, tint = tint, modifier = Modifier.size(26.dp))
+            }
+            Text(category, style = MaterialTheme.typography.titleMedium)
+        }
+        if (selected) {
+            SelectedBadge(modifier = Modifier.align(Alignment.TopEnd))
+        }
     }
 }
 

@@ -19,6 +19,9 @@ class GymRepository(
     fun observeExercises(location: GymLocation, category: String): Flow<List<GymExercise>> =
         dao.observeExercises(location, category)
 
+    suspend fun getExercises(location: GymLocation, category: String): List<GymExercise> =
+        dao.observeExercises(location, category).first()
+
     suspend fun addExercise(
         location: GymLocation,
         category: String,
@@ -83,6 +86,8 @@ class GymRepository(
     }
 
     fun observeSchedule(date: String): Flow<List<GymScheduleEntry>> = dao.observeSchedule(date)
+
+    fun observePlannedDates(): Flow<List<String>> = dao.observePlannedDates()
 
     suspend fun getScheduledExercises(date: String): List<GymExercise> {
         val entries = dao.observeSchedule(date).first().sortedBy { it.orderIndex }

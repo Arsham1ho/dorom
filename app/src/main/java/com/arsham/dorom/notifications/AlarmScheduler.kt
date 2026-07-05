@@ -17,6 +17,11 @@ import java.time.ZoneId
 /** Centralizes scheduling/cancelling every exact alarm the app posts. */
 class AlarmScheduler(private val context: Context) {
 
+    companion object {
+        /** Task reminders fire this long before the task's start time, not exactly at it. */
+        const val TASK_REMINDER_LEAD_MILLIS = 5 * 60 * 1000L
+    }
+
     private val alarmManager: AlarmManager
         get() = context.getSystemService(AlarmManager::class.java)
 
@@ -45,7 +50,7 @@ class AlarmScheduler(private val context: Context) {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        schedule(epochMillisFor(date, task.startTime), pi)
+        schedule(epochMillisFor(date, task.startTime) - TASK_REMINDER_LEAD_MILLIS, pi)
     }
 
     fun cancelTaskReminder(taskId: Long) {
