@@ -31,6 +31,13 @@ class PlanRepository(
         alarmScheduler.scheduleEndOfDayReview(date, bedTime)
     }
 
+    /** Appends a single task to [date]'s existing plan without touching other tasks' done-state. */
+    suspend fun addTask(date: String, task: PlanTask) {
+        val nextIndex = dao.getTasks(date).size
+        val id = dao.upsertTask(task.copy(date = date, orderIndex = nextIndex, isDone = false, completedAtEpochMillis = null))
+        alarmScheduler.scheduleTaskReminder(date, task.copy(id = id, date = date, orderIndex = nextIndex))
+    }
+
     suspend fun toggleTaskDone(task: PlanTask) {
         val updated = task.copy(
             isDone = !task.isDone,

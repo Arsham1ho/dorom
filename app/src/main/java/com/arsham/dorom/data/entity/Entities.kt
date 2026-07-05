@@ -21,6 +21,7 @@ data class PlanTask(
     val title: String,
     val category: String,
     val startTime: String, // HH:mm
+    val endTime: String? = null, // HH:mm, optional
     val orderIndex: Int,
     val isDone: Boolean = false,
     val completedAtEpochMillis: Long? = null,
