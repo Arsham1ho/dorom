@@ -2,39 +2,41 @@ package com.arsham.dorom.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Flat, no-gradient palette. One confident accent, one muted secondary.
+// Flat, no-gradient palette. One confident blue accent, everything else near-monochrome —
+// deliberately Spotify-like: the accent carries all the color, surfaces are just brightness steps.
 // Dark ("ink") surfaces
-val InkBackground = Color(0xFF14140F)
-val InkSurface = Color(0xFF242019)
-val InkSurfaceRaised = Color(0xFF2F2A20)
-val InkOutline = Color(0xFF4A4636)
+val InkBackground = Color(0xFF121212)
+val InkSurface = Color(0xFF1A1A1A)
+val InkSurfaceRaised = Color(0xFF282828)
+val InkOutline = Color(0xFF3A3A3A)
 
 // Light ("parchment") surfaces
-val ParchmentBackground = Color(0xFFF3EEE2)
-val ParchmentSurface = Color(0xFFFDFBF6)
-val ParchmentSurfaceRaised = Color(0xFFEDE5D3)
-val ParchmentOutline = Color(0xFFD9CDB0)
+val ParchmentBackground = Color(0xFFFFFFFF)
+val ParchmentSurface = Color(0xFFF7F7F7)
+val ParchmentSurfaceRaised = Color(0xFFEDEDED)
+val ParchmentOutline = Color(0xFFDDDDDD)
 
-val Terracotta = Color(0xFFE8734A)
-val TerracottaDim = Color(0xFF8C4A31)
-val TerracottaOnLight = Color(0xFFC85A32)
-val Sage = Color(0xFF7A8F72)
-val SageDim = Color(0xFF4E5C49)
-val SageOnLight = Color(0xFF4F7A54)
+val Terracotta = Color(0xFF2E7CF6)
+val TerracottaDim = Color(0xFF1E4FA0)
+val TerracottaOnLight = Color(0xFF1B5FD1)
+val Sage = Color(0xFF6E7A8A)
+val SageDim = Color(0xFF465061)
+val SageOnLight = Color(0xFF4C5768)
 
-val TextPrimary = Color(0xFFF3F1E7)
-val TextSecondary = Color(0xFFB4B0A0)
-val TextMuted = Color(0xFF7B7869)
+val TextPrimary = Color(0xFFFFFFFF)
+val TextSecondary = Color(0xFFB3B3B3)
+val TextMuted = Color(0xFF7A7A7A)
 
-val TextPrimaryLight = Color(0xFF211E15)
-val TextSecondaryLight = Color(0xFF5C5544)
-val TextMutedLight = Color(0xFF8A8064)
+val TextPrimaryLight = Color(0xFF121212)
+val TextSecondaryLight = Color(0xFF5A5A5A)
+val TextMutedLight = Color(0xFF8A8A8A)
 
-val DangerRed = Color(0xFFC9563B)
-val DangerRedOnLight = Color(0xFFB6432A)
+val DangerRed = Color(0xFFE0453F)
+val DangerRedOnLight = Color(0xFFC62F2A)
 val WarnAmber = Color(0xFFD9A441)
 
-// Fixed badge tints (same in both themes) used for icon-badge variety across hub tiles.
-val BadgeBlue = Color(0xFF5C7FA6)
-val BadgeViolet = Color(0xFF8B6FA8)
-val BadgeGold = Color(0xFFC79A3E)
+// Neutral grayscale badge tints — Spotify keeps color reserved for the one accent, so per-tile
+// "variety" comes from brightness steps instead of separate hues.
+val BadgeBlue = Color(0xFF8A8A8A)
+val BadgeViolet = Color(0xFF6E6E6E)
+val BadgeGold = Color(0xFFA0A0A0)

@@ -373,7 +373,7 @@ private val quickLinks = listOf(
     QuickLink(Icons.Filled.FitnessCenter, "Gym", "Workout plan", Routes.TRACK_GYM, Terracotta),
     QuickLink(Icons.Filled.MusicNote, "Guitar", "Practice log", Routes.TRACK_GUITAR, BadgeViolet),
     QuickLink(Icons.Filled.Savings, "Finance", "This month", Routes.TRACK_FINANCE, Sage),
-    QuickLink(Icons.Filled.Timelapse, "Markers", "Countdowns", Routes.TRACK_TIME_MARKERS, BadgeGold),
+    QuickLink(Icons.Filled.Timelapse, "Time Since", "Countdowns", Routes.TRACK_TIME_MARKERS, BadgeGold),
 )
 
 @Composable

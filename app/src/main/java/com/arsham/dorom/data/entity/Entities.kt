@@ -62,6 +62,8 @@ data class Course(
     val completedLessons: Int = 0,
     val notes: String = "",
     val isArchived: Boolean = false,
+    val startDate: String? = null, // yyyy-MM-dd
+    val deadlineDate: String? = null, // yyyy-MM-dd
 )
 
 enum class TimeDirection { COUNTDOWN, COUNTUP }
@@ -77,7 +79,7 @@ data class TimeMarker(
 
 enum class GymLocation { GYM, HOME_GYM }
 
-val GYM_CATEGORIES = listOf("Chest", "Back", "Shoulder", "Bicep", "Triceps", "Forearm", "Leg", "Abs", "Cardio")
+val GYM_CATEGORIES = listOf("Chest", "Back", "Shoulder", "Bicep", "Triceps", "Forearm", "Leg", "Abs", "Cardio", "Sport")
 
 @Entity(tableName = "gym_exercise")
 data class GymExercise(

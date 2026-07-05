@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -74,14 +73,12 @@ fun DoromBottomBar(currentRoute: String?, onNavigate: (String) -> Unit, modifier
 @Composable
 private fun BottomBarItem(modifier: Modifier, icon: ImageVector, label: String, selected: Boolean, onClick: () -> Unit) {
     val color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-    val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f) else androidx.compose.ui.graphics.Color.Transparent
+    // Spotify-style flat tab: no highlight background, just an icon/label color change on select.
     // The clickable area fills this entire weighted slot (not just the wrapped icon+label),
     // so there's no dead space between tabs where a tap could silently miss.
     Column(
         modifier = modifier
             .padding(horizontal = 3.dp, vertical = 6.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(bg)
             .doromClickable(onClick),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,

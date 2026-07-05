@@ -31,6 +31,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -151,7 +153,17 @@ fun GymScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
                                 onClick = { onNavigate(Routes.gymCategory(location.name, category)) },
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    GlyphBadge(tint = categoryTint(i)) { MuscleGlyph(category = category, tint = categoryTint(i), modifier = Modifier.size(26.dp)) }
+                                    val imageRes = categoryImageRes(category)
+                                    if (imageRes != null) {
+                                        androidx.compose.foundation.Image(
+                                            painter = painterResource(imageRes),
+                                            contentDescription = category,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.size(64.dp).clip(com.arsham.dorom.ui.theme.CardShape),
+                                        )
+                                    } else {
+                                        GlyphBadge(tint = categoryTint(i)) { MuscleGlyph(category = category, tint = categoryTint(i), modifier = Modifier.size(26.dp)) }
+                                    }
                                     Text(category, style = MaterialTheme.typography.titleMedium)
                                 }
                             }

@@ -47,12 +47,24 @@ import com.arsham.dorom.ui.theme.Terracotta
 import com.arsham.dorom.ui.theme.doromClickable
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+private fun gymDateLabel(date: LocalDate): String {
+    val today = LocalDate.now()
+    return when (date) {
+        today -> "Today"
+        today.plusDays(1) -> "Tomorrow"
+        today.minusDays(1) -> "Yesterday"
+        else -> date.format(DateTimeFormatter.ofPattern("EEE, MMM d"))
+    }
+}
 
 @Composable
 fun GymCalendarScreen(location: GymLocation, onBack: () -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     var date by remember { mutableStateOf(LocalDate.now()) }
+    var showCalendar by remember { mutableStateOf(true) }
     val selectedCategories = remember { mutableStateListOf<String>() }
     val plannedDates by container.gymRepository.observePlannedDates().collectAsStateWithLifecycle(initialValue = emptyList())
 
@@ -70,28 +82,46 @@ fun GymCalendarScreen(location: GymLocation, onBack: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
-            item {
-                DoromCard(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        Text("Which day?", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Days with a dot already have a saved gym plan.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp, bottom = 10.dp),
-                        )
-                        MonthCalendar(
-                            selectedDate = date,
-                            markedDates = plannedDates.toSet(),
-                            onSelectDate = { date = it },
-                        )
+            if (showCalendar) {
+                item {
+                    DoromCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Text("Which day?", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Days with a dot already have a saved gym plan.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 2.dp, bottom = 10.dp),
+                            )
+                            MonthCalendar(
+                                selectedDate = date,
+                                markedDates = plannedDates.toSet(),
+                                onSelectDate = { date = it; showCalendar = false },
+                            )
+                        }
+                    }
+                }
+            } else {
+                item {
+                    DoromCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { showCalendar = true },
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(gymDateLabel(date), style = MaterialTheme.typography.titleMedium)
+                            Text("Change day", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
             }
 
             item {
                 Column {
-                    SectionHeader(title = "Pick a plan for $date")
+                    SectionHeader(title = "Pick a plan for ${gymDateLabel(date)}")
                     Text(
                         "Tap the muscle groups you're training this day — every exercise saved under them comes along automatically.",
                         style = MaterialTheme.typography.bodySmall,
@@ -173,11 +203,21 @@ private fun SelectableCategoryCard(category: String, tint: Color, selected: Bool
             .padding(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(
-                modifier = Modifier.size(44.dp).clip(CardShape).background(tint.copy(alpha = 0.16f)),
-                contentAlignment = Alignment.Center,
-            ) {
-                MuscleGlyph(category = category, tint = tint, modifier = Modifier.size(26.dp))
+            val imageRes = categoryImageRes(category)
+            if (imageRes != null) {
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(imageRes),
+                    contentDescription = category,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    modifier = Modifier.size(44.dp).clip(CardShape),
+                )
+            } else {
+                Box(
+                    modifier = Modifier.size(44.dp).clip(CardShape).background(tint.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    MuscleGlyph(category = category, tint = tint, modifier = Modifier.size(26.dp))
+                }
             }
             Text(category, style = MaterialTheme.typography.titleMedium)
         }

@@ -19,14 +19,14 @@ import com.arsham.dorom.ui.theme.CardShape
 import com.arsham.dorom.ui.theme.ChipShape
 import com.arsham.dorom.ui.theme.doromClickable
 
-/** Flat card with a visible hairline border — no shadow, no gradient; the outline carries the boundary. */
+/** Flat, borderless card — separation comes from surface-color contrast alone, no outline, no shadow. */
 @Composable
 fun DoromCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     shape: RoundedCornerShape = CardShape,
-    containerColor: Color = MaterialTheme.colorScheme.surface,
-    borderColor: Color = MaterialTheme.colorScheme.outline,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    borderColor: Color = Color.Unspecified,
     contentPadding: PaddingValues = PaddingValues(16.dp),
     content: @Composable () -> Unit,
 ) {
@@ -34,7 +34,7 @@ fun DoromCard(
         modifier = modifier
             .clip(shape)
             .background(containerColor)
-            .border(BorderStroke(1.dp, borderColor), shape)
+            .then(if (borderColor != Color.Unspecified) Modifier.border(BorderStroke(1.5.dp, borderColor), shape) else Modifier)
             .then(if (onClick != null) Modifier.doromClickable(onClick) else Modifier)
             .padding(contentPadding)
     ) {
@@ -89,8 +89,8 @@ fun IconBadge(
     Box(
         modifier = modifier
             .size(size)
-            .clip(RoundedCornerShape(12.dp))
-            .background(tint.copy(alpha = 0.16f)),
+            .clip(RoundedCornerShape(10.dp))
+            .background(tint.copy(alpha = 0.28f)),
         contentAlignment = androidx.compose.ui.Alignment.Center,
     ) {
         androidx.compose.material3.Icon(
