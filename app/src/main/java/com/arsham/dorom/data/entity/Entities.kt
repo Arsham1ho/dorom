@@ -85,6 +85,9 @@ data class GymExercise(
     val category: String,
     val name: String,
     val imagePath: String? = null,
+    val defaultSets: Int = 3,
+    val defaultReps: Int = 10,
+    val defaultWeight: Double = 0.0,
     val createdAtEpochMillis: Long,
 )
 
