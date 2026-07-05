@@ -129,6 +129,7 @@ private fun DayPlanContent(date: LocalDate, modifier: Modifier = Modifier) {
     val plan by container.planRepository.observePlan(dateString).collectAsStateWithLifecycle(initialValue = null)
     val tasks by container.planRepository.observeTasks(dateString).collectAsStateWithLifecycle(initialValue = emptyList())
     val review by container.reviewRepository.observeReview(dateString).collectAsStateWithLifecycle(initialValue = null)
+    var showAddTask by remember(date) { mutableStateOf(false) }
 
     var nowTime by remember { mutableStateOf(LocalTime.now()) }
     LaunchedEffect(isToday) {
@@ -187,7 +188,16 @@ private fun DayPlanContent(date: LocalDate, modifier: Modifier = Modifier) {
             }
         }
 
-        item { SectionHeader(title = if (tasks.isEmpty()) "No tasks yet" else "${tasks.size} tasks") }
+        item {
+            SectionHeader(
+                title = if (tasks.isEmpty()) "No tasks yet" else "${tasks.size} tasks",
+                action = {
+                    IconButton(onClick = { showAddTask = !showAddTask }) {
+                        Icon(Icons.Filled.Add, contentDescription = "Add task")
+                    }
+                },
+            )
+        }
 
         val nowInsertIndex = if (isToday) tasks.indexOfFirst { it.startTime > nowLabel }.let { if (it == -1) tasks.size else it } else -1
 
@@ -203,16 +213,19 @@ private fun DayPlanContent(date: LocalDate, modifier: Modifier = Modifier) {
             item(key = "now-end") { NowMarker(nowLabel) }
         }
 
-        item {
-            AddTaskCard(date = dateString, onAdd = { draft ->
-                scope.launch {
-                    if (plan == null) container.planRepository.savePlan(dateString, "07:00", "23:00", emptyList())
-                    container.planRepository.addTask(
-                        dateString,
-                        PlanTask(date = dateString, title = draft.title, category = draft.category, startTime = draft.startTime, endTime = draft.endTime, orderIndex = 0),
-                    )
-                }
-            })
+        if (showAddTask) {
+            item {
+                AddTaskCard(date = dateString, onAdd = { draft ->
+                    scope.launch {
+                        if (plan == null) container.planRepository.savePlan(dateString, "07:00", "23:00", emptyList())
+                        container.planRepository.addTask(
+                            dateString,
+                            PlanTask(date = dateString, title = draft.title, category = draft.category, startTime = draft.startTime, endTime = draft.endTime, orderIndex = 0),
+                        )
+                    }
+                    showAddTask = false
+                })
+            }
         }
     }
 }
