@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.ui.LocalAppContainer
@@ -39,6 +40,7 @@ import com.arsham.dorom.ui.components.RecordingWaveform
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.TopBarWithBack
 import com.arsham.dorom.ui.theme.DataText
+import com.arsham.dorom.ui.theme.Sage
 import com.arsham.dorom.util.AudioPlayer
 import com.arsham.dorom.util.AudioRecorder
 import com.arsham.dorom.util.todayString
@@ -49,10 +51,12 @@ fun FeedbackScreen(onBack: () -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val focusManager = LocalFocusManager.current
     val today = todayString()
 
     val review by container.reviewRepository.observeReview(today).collectAsStateWithLifecycle(initialValue = null)
     var text by remember(review?.date) { mutableStateOf(review?.feedbackText ?: "") }
+    var justSaved by remember { mutableStateOf(false) }
 
     val recorder = remember { AudioRecorder(context) }
     val player = remember { AudioPlayer() }
@@ -99,16 +103,30 @@ fun FeedbackScreen(onBack: () -> Unit) {
             item {
                 Column {
                     SectionHeader(title = "In your words")
-                    OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
+                    OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape,
                         value = text,
-                        onValueChange = { text = it },
+                        onValueChange = { text = it; justSaved = false },
                         modifier = Modifier.fillMaxWidth().height(160.dp),
                         label = { Text("How did today go?") },
                     )
-                    Button(
+                    Row(
                         modifier = Modifier.padding(top = 8.dp),
-                        onClick = { scope.launch { container.reviewRepository.saveFeedback(today, text, null) } },
-                    ) { Text("Save") }
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Button(
+                            onClick = {
+                                focusManager.clearFocus()
+                                scope.launch {
+                                    container.reviewRepository.saveFeedback(today, text, null)
+                                    justSaved = true
+                                }
+                            },
+                        ) { Text("Save") }
+                        if (justSaved) {
+                            Text("Saved ✓", style = MaterialTheme.typography.labelMedium, color = Sage)
+                        }
+                    }
                 }
             }
 
