@@ -12,10 +12,13 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.Timelapse
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,7 +38,10 @@ import com.arsham.dorom.ui.theme.Terracotta
 private data class TrackTile(val icon: ImageVector, val label: String, val subtitle: String, val route: String, val tint: Color)
 
 private val tiles = listOf(
+    TrackTile(Icons.Filled.Flag, "Goals", "Long-term wins", Routes.GOALS, Terracotta),
     TrackTile(Icons.AutoMirrored.Filled.MenuBook, "Courses", "Lessons & progress", Routes.TRACK_COURSES, BadgeBlue),
+    TrackTile(Icons.Filled.Lightbulb, "Personal Projects", "Side projects you're building", Routes.TRACK_PERSONAL_PROJECTS, BadgeGold),
+    TrackTile(Icons.Filled.Translate, "Finnish", "Daily practice log", Routes.TRACK_FINNISH, BadgeViolet),
     TrackTile(Icons.Filled.Timelapse, "Time Since", "Countdowns & count-ups", Routes.TRACK_TIME_MARKERS, BadgeGold),
     TrackTile(Icons.Filled.FitnessCenter, "Gym", "Workout plan", Routes.TRACK_GYM, Terracotta),
     TrackTile(Icons.Filled.MusicNote, "Guitar", "Songs, tabs & recordings", Routes.TRACK_GUITAR, BadgeViolet),

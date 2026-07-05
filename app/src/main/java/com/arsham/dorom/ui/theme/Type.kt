@@ -8,9 +8,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.arsham.dorom.R
 
-// Poppins (body/headlines) and JetBrains Mono (numeric/data readouts) — both bundled locally
-// (OFL-licensed, see THIRD_PARTY_FONT_LICENSES_*.txt at the repo root) so there's no runtime
-// download and no dependency on Google Play Services being present.
+// Poppins, bundled locally (OFL-licensed, see THIRD_PARTY_FONT_LICENSES_Poppins.txt at the repo
+// root) so there's no runtime download and no dependency on Google Play Services being present.
+// Numeric readouts (scores, timers, money) use the same family instead of a coding monospace face
+// — a dedicated mono face read as too "code editor" for a personal-life app.
 private val Body = FontFamily(
     Font(R.font.poppins_regular, FontWeight.Normal),
     Font(R.font.poppins_medium, FontWeight.Medium),
@@ -18,11 +19,7 @@ private val Body = FontFamily(
     Font(R.font.poppins_bold, FontWeight.Bold),
     Font(R.font.poppins_black, FontWeight.Black),
 )
-private val Data = FontFamily(
-    Font(R.font.jetbrains_mono_medium, FontWeight.Medium),
-    Font(R.font.jetbrains_mono_semibold, FontWeight.SemiBold),
-    Font(R.font.jetbrains_mono_bold, FontWeight.Bold),
-)
+private val Data = Body
 
 val DoromTypography = Typography(
     displayLarge = TextStyle(fontFamily = Data, fontWeight = FontWeight.Bold, fontSize = 46.sp, letterSpacing = (-0.5).sp),

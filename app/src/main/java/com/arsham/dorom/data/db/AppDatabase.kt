@@ -8,11 +8,13 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.arsham.dorom.data.dao.CourseDao
 import com.arsham.dorom.data.dao.FinanceDao
+import com.arsham.dorom.data.dao.FinnishPracticeDao
 import com.arsham.dorom.data.dao.GoalDao
 import com.arsham.dorom.data.dao.GuitarDao
 import com.arsham.dorom.data.dao.GymDao
 import com.arsham.dorom.data.dao.JournalDao
 import com.arsham.dorom.data.dao.MoodDao
+import com.arsham.dorom.data.dao.PersonalProjectDao
 import com.arsham.dorom.data.dao.PlanDao
 import com.arsham.dorom.data.dao.ReviewDao
 import com.arsham.dorom.data.dao.TimeMarkerDao
@@ -20,6 +22,7 @@ import com.arsham.dorom.data.dao.WeeklyPlanDao
 import com.arsham.dorom.data.entity.Course
 import com.arsham.dorom.data.entity.DailyPlan
 import com.arsham.dorom.data.entity.DailyReview
+import com.arsham.dorom.data.entity.FinnishPracticeEntry
 import com.arsham.dorom.data.entity.GuitarRecording
 import com.arsham.dorom.data.entity.GuitarSong
 import com.arsham.dorom.data.entity.GuitarTabImage
@@ -32,6 +35,7 @@ import com.arsham.dorom.data.entity.JournalEntry
 import com.arsham.dorom.data.entity.LongTermGoal
 import com.arsham.dorom.data.entity.MoneyTransaction
 import com.arsham.dorom.data.entity.MoodEntry
+import com.arsham.dorom.data.entity.PersonalProject
 import com.arsham.dorom.data.entity.PlanTask
 import com.arsham.dorom.data.entity.SongStatus
 import com.arsham.dorom.data.entity.TimeDirection
@@ -79,14 +83,18 @@ class Converters {
         JournalEntry::class,
         MoneyTransaction::class,
         MoodEntry::class,
+        PersonalProject::class,
+        FinnishPracticeEntry::class,
     ],
-    version = 7,
+    version = 9,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun planDao(): PlanDao
     abstract fun goalDao(): GoalDao
+    abstract fun personalProjectDao(): PersonalProjectDao
+    abstract fun finnishPracticeDao(): FinnishPracticeDao
     abstract fun weeklyPlanDao(): WeeklyPlanDao
     abstract fun courseDao(): CourseDao
     abstract fun timeMarkerDao(): TimeMarkerDao
