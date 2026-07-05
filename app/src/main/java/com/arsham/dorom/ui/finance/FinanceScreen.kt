@@ -1,5 +1,6 @@
 package com.arsham.dorom.ui.finance
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material3.Button
@@ -29,7 +31,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.MoneyTransaction
 import com.arsham.dorom.data.entity.TransactionType
@@ -42,12 +47,17 @@ import com.arsham.dorom.ui.components.ProgressRing
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.Tag
 import com.arsham.dorom.ui.components.TopBarWithBack
+import com.arsham.dorom.ui.theme.CardShape
+import com.arsham.dorom.ui.theme.DangerRed
 import com.arsham.dorom.ui.theme.DataText
 import com.arsham.dorom.ui.theme.Sage
 import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.util.todayString
 import com.arsham.dorom.util.yearMonthString
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 private val EXPENSE_CATEGORIES = listOf("Rent", "Food", "Transport", "Bills", "Fun", "Shopping", "Health", "Other")
@@ -123,7 +133,7 @@ private fun MonthlyReportCard(report: MonthlyReport) {
     }
 }
 
-private fun money(v: Double): String = "%.0f".format(v)
+private fun money(v: Double): String = "€%.0f".format(v)
 
 @Composable
 private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -> Unit) {
@@ -169,30 +179,134 @@ private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -
 }
 
 @Composable
+private fun typeColor(type: TransactionType) = when (type) {
+    TransactionType.INCOME -> Sage
+    TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
+    TransactionType.SAVING -> MaterialTheme.colorScheme.onSurfaceVariant
+}
+
+private fun typeIcon(type: TransactionType) = when (type) {
+    TransactionType.INCOME -> Icons.Filled.ArrowUpward
+    TransactionType.EXPENSE -> Icons.Filled.ArrowDownward
+    TransactionType.SAVING -> Icons.Filled.Savings
+}
+
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
 private fun TransactionRow(tx: MoneyTransaction, onDelete: () -> Unit) {
-    val color = when (tx.type) {
-        TransactionType.INCOME -> Sage
-        TransactionType.EXPENSE -> MaterialTheme.colorScheme.error
-        TransactionType.SAVING -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
-    val icon = when (tx.type) {
-        TransactionType.INCOME -> Icons.Filled.ArrowUpward
-        TransactionType.EXPENSE -> Icons.Filled.ArrowDownward
-        TransactionType.SAVING -> Icons.Filled.Savings
-    }
-    DoromCard(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                IconBadge(icon = icon, tint = color)
-                Column {
-                    Text(tx.category, style = MaterialTheme.typography.titleMedium)
-                    Text(tx.date + if (tx.note.isNotBlank()) " · ${tx.note}" else "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+    val scope = rememberCoroutineScope()
+    val color = typeColor(tx.type)
+    val icon = typeIcon(tx.type)
+    var showDetails by remember { mutableStateOf(false) }
+    var showConfirm by remember { mutableStateOf(false) }
+    val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd) showConfirm = true
+            false
+        },
+    )
+
+    androidx.compose.material3.SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CardShape)
+                    .background(DangerRed)
+                    .padding(horizontal = 20.dp),
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = null, tint = Color.White)
             }
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        },
+    ) {
+        DoromCard(modifier = Modifier.fillMaxWidth(), onClick = { showDetails = true }) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    IconBadge(icon = icon, tint = color)
+                    Column {
+                        Text(tx.category, style = MaterialTheme.typography.titleMedium)
+                        Text(tx.date + if (tx.note.isNotBlank()) " · ${tx.note}" else "", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
                 Text(money(tx.amount), style = DataText.medium, color = color)
-                IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Delete") }
             }
         }
+    }
+
+    if (showDetails) {
+        Dialog(onDismissRequest = { showDetails = false }) {
+            TransactionDetails(tx = tx, onDismiss = { showDetails = false })
+        }
+    }
+
+    if (showConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showConfirm = false; scope.launch { dismissState.reset() } },
+            title = { Text("Remove transaction?") },
+            text = { Text("Remove this ${tx.category} entry?") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showConfirm = false
+                    onDelete()
+                }) { Text("Remove") }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showConfirm = false; scope.launch { dismissState.reset() } }) { Text("Cancel") }
+            },
+        )
+    }
+}
+
+@Composable
+private fun TransactionDetails(tx: MoneyTransaction, onDismiss: () -> Unit) {
+    val color = typeColor(tx.type)
+    val icon = typeIcon(tx.type)
+    val time = remember(tx.timestampEpochMillis) {
+        Instant.ofEpochMilli(tx.timestampEpochMillis).atZone(ZoneId.systemDefault()).toLocalTime()
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
+    }
+
+    DoromCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Transaction details", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = "Close") }
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                IconBadge(icon = icon, tint = color, size = 48.dp)
+                Column {
+                    Text(tx.category, style = MaterialTheme.typography.titleLarge)
+                    Text(tx.type.name.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            Text(money(tx.amount), style = DataText.large, color = color, modifier = Modifier.padding(top = 14.dp))
+            DetailLine(label = "Date", value = tx.date)
+            DetailLine(label = "Time", value = time)
+            if (tx.note.isNotBlank()) {
+                DetailLine(label = "Description", value = tx.note)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailLine(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, style = MaterialTheme.typography.bodyMedium)
     }
 }

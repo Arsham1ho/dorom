@@ -17,10 +17,12 @@ import com.arsham.dorom.data.entity.GymLocation
 import com.arsham.dorom.data.entity.GymScheduleEntry
 import com.arsham.dorom.data.entity.GymSession
 import com.arsham.dorom.data.entity.GymSessionSet
+import com.arsham.dorom.data.entity.FinnishPracticeEntry
 import com.arsham.dorom.data.entity.JournalEntry
 import com.arsham.dorom.data.entity.LongTermGoal
 import com.arsham.dorom.data.entity.MoneyTransaction
 import com.arsham.dorom.data.entity.MoodEntry
+import com.arsham.dorom.data.entity.PersonalProject
 import com.arsham.dorom.data.entity.PlanTask
 import com.arsham.dorom.data.entity.TimeMarker
 import com.arsham.dorom.data.entity.WeeklyPlan
@@ -70,6 +72,30 @@ interface GoalDao {
 
     @Delete
     suspend fun deleteGoal(goal: LongTermGoal)
+}
+
+@Dao
+interface PersonalProjectDao {
+    @Query("SELECT * FROM personal_project WHERE isArchived = 0 ORDER BY createdAtEpochMillis DESC")
+    fun observeProjects(): Flow<List<PersonalProject>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertProject(project: PersonalProject): Long
+
+    @Delete
+    suspend fun deleteProject(project: PersonalProject)
+}
+
+@Dao
+interface FinnishPracticeDao {
+    @Query("SELECT * FROM finnish_practice_entry ORDER BY date DESC")
+    fun observeEntries(): Flow<List<FinnishPracticeEntry>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertEntry(entry: FinnishPracticeEntry): Long
+
+    @Delete
+    suspend fun deleteEntry(entry: FinnishPracticeEntry)
 }
 
 @Dao

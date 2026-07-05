@@ -64,6 +64,12 @@ fun DoromNavHost(navController: NavHostController, startDestination: String) {
         composable(Routes.TRACK_COURSES) {
             CoursesScreen(onBack = { navController.popBackStack() })
         }
+        composable(Routes.TRACK_PERSONAL_PROJECTS) {
+            com.arsham.dorom.ui.projects.PersonalProjectsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.TRACK_FINNISH) {
+            com.arsham.dorom.ui.finnish.FinnishScreen(onBack = { navController.popBackStack() })
+        }
         composable(Routes.TRACK_TIME_MARKERS) {
             TimeMarkersScreen(onBack = { navController.popBackStack() })
         }

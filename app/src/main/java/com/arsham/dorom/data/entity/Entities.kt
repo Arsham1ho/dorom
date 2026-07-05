@@ -32,9 +32,30 @@ data class LongTermGoal(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
     val description: String,
-    val targetDate: String? = null, // yyyy-MM-dd
+    val startDate: String? = null, // yyyy-MM-dd
+    val deadlineDate: String? = null, // yyyy-MM-dd
+    val tag: String? = null,
+    val imagePath: String? = null,
     val progressPercent: Int = 0,
     val isArchived: Boolean = false,
+    val createdAtEpochMillis: Long,
+)
+
+@Entity(tableName = "personal_project")
+data class PersonalProject(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val name: String,
+    val description: String = "",
+    val isArchived: Boolean = false,
+    val createdAtEpochMillis: Long,
+)
+
+@Entity(tableName = "finnish_practice_entry")
+data class FinnishPracticeEntry(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val date: String, // yyyy-MM-dd
+    val minutes: Int,
+    val notes: String = "",
     val createdAtEpochMillis: Long,
 )
 
@@ -185,6 +206,7 @@ data class MoneyTransaction(
     val category: String,
     val amount: Double,
     val note: String = "",
+    val timestampEpochMillis: Long = System.currentTimeMillis(),
 )
 
 @Entity(tableName = "mood_entry")

@@ -126,7 +126,7 @@ fun HomeScreen(onNavigate: (String) -> Unit) {
             )
         }
 
-        item { MoodQuickLogCard(onViewReport = { onNavigate(Routes.MOOD_REPORT) }) }
+        item { MoodQuickLogCard() }
 
         item { WeekGlanceCard(recentReviews) }
 
@@ -332,21 +332,14 @@ private fun WeekGlanceCard(recentReviews: List<DailyReview>) {
 }
 
 @Composable
-private fun MoodQuickLogCard(onViewReport: () -> Unit) {
+private fun MoodQuickLogCard() {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     var justLogged by remember { mutableStateOf<String?>(null) }
 
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            SectionHeader(title = "How are you feeling right now?") {
-                Text(
-                    "Full report",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.doromClickable(onViewReport),
-                )
-            }
+            SectionHeader(title = "How are you feeling right now?")
             MoodPickerRow(
                 modifier = Modifier.padding(top = 10.dp),
                 onLog = { emoji, note ->
@@ -445,7 +438,7 @@ private fun SnapshotCarousel(pages: List<SnapshotPage>, onNavigate: (String) -> 
 @Composable
 private fun GoalsSnapshotCard(goals: List<LongTermGoal>, onClick: () -> Unit) {
     val active = goals.filter { it.progressPercent < 100 }.ifEmpty { goals }
-    val topGoal = active.minByOrNull { it.targetDate ?: "9999-99-99" } ?: active.first()
+    val topGoal = active.minByOrNull { it.deadlineDate ?: "9999-99-99" } ?: active.first()
     DoromCard(onClick = onClick, modifier = Modifier.fillMaxWidth().height(120.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             ProgressRing(percent = topGoal.progressPercent / 100f, size = 64.dp, strokeWidth = 6.dp)

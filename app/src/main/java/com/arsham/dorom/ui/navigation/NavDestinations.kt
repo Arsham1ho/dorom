@@ -7,6 +7,8 @@ object Routes {
     const val GOALS = "goals"
     const val TRACK = "track"
     const val TRACK_COURSES = "track_courses"
+    const val TRACK_PERSONAL_PROJECTS = "track_personal_projects"
+    const val TRACK_FINNISH = "track_finnish"
     const val TRACK_TIME_MARKERS = "track_time_markers"
     const val TRACK_GYM = "track_gym"
     const val GYM_CATEGORY = "gym_category/{location}/{category}"
