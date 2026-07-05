@@ -195,6 +195,8 @@ data class JournalEntry(
     val createdAtEpochMillis: Long,
     val updatedAtEpochMillis: Long,
     val encryptedContent: String, // Base64 ciphertext, decrypted only in-memory via JournalCrypto
+    val audioPath: String? = null,
+    val videoPath: String? = null,
 )
 
 enum class TransactionType { INCOME, EXPENSE, SAVING }

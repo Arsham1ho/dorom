@@ -46,7 +46,7 @@ class AppContainer(app: Application) {
     val gymRepository = GymRepository(db.gymDao(), app)
     val guitarRepository = GuitarRepository(db.guitarDao(), app)
     val reviewRepository = ReviewRepository(db.reviewDao(), app)
-    val journalRepository = JournalRepository(db.journalDao())
+    val journalRepository = JournalRepository(db.journalDao(), app)
     val financeRepository = FinanceRepository(db.financeDao())
     val moodRepository = MoodRepository(db.moodDao())
 }
