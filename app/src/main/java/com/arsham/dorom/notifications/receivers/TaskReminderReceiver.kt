@@ -30,8 +30,8 @@ class TaskReminderReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, NotificationHelper.CHANNEL_TASKS)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Time for: $title")
-            .setContentText("It's on today's plan — tap to check it off.")
+            .setContentTitle("Starting soon: $title")
+            .setContentText("Starts in 5 minutes — tap to check it off.")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pi)

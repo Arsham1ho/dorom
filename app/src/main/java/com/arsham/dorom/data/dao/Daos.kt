@@ -137,6 +137,9 @@ interface GymDao {
     @Query("SELECT * FROM gym_schedule_entry WHERE date = :date ORDER BY orderIndex ASC")
     fun observeSchedule(date: String): Flow<List<GymScheduleEntry>>
 
+    @Query("SELECT DISTINCT date FROM gym_schedule_entry")
+    fun observePlannedDates(): Flow<List<String>>
+
     @Query("DELETE FROM gym_schedule_entry WHERE date = :date")
     suspend fun clearSchedule(date: String)
 

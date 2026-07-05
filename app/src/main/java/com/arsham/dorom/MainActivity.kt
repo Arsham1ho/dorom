@@ -14,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.CompositionLocalProvider
@@ -70,7 +71,7 @@ class MainActivity : FragmentActivity() {
 
                     Surface(modifier = Modifier.fillMaxSize()) {
                         Column(modifier = Modifier.fillMaxSize()) {
-                            Box(modifier = Modifier.fillMaxSize().weight(1f).statusBarsPadding()) {
+                            Box(modifier = Modifier.fillMaxSize().weight(1f).statusBarsPadding().imePadding()) {
                                 DoromNavHost(navController = navController, startDestination = Routes.HOME)
                             }
                             DoromBottomBar(
