@@ -94,6 +94,7 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
                             OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newTitle, onValueChange = { newTitle = it }, label = { Text("Song title") }, modifier = Modifier.fillMaxWidth())
                             OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newArtist, onValueChange = { newArtist = it }, label = { Text("Artist (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
                             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Button(onClick = { showAdd = false }) { Text("Cancel") }
                                 Button(onClick = {
                                     if (newTitle.isNotBlank()) {
                                         scope.launch {
@@ -104,7 +105,6 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
                                         newTitle = ""; newArtist = ""; showAdd = false
                                     }
                                 }) { Text("Save") }
-                                Button(onClick = { showAdd = false }) { Text("Cancel") }
                             }
                         }
                     }

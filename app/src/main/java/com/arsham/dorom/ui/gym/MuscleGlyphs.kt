@@ -9,7 +9,22 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.rotate
+import com.arsham.dorom.R
 import com.arsham.dorom.data.entity.GymLocation
+
+/** Real reference photo for a category, when one has been supplied — falls back to a drawn glyph otherwise. */
+fun categoryImageRes(category: String): Int? = when (category) {
+    "Chest" -> R.drawable.gym_chest
+    "Back" -> R.drawable.gym_back
+    "Shoulder" -> R.drawable.gym_shoulder
+    "Bicep" -> R.drawable.gym_bicep
+    "Triceps" -> R.drawable.gym_triceps
+    "Forearm" -> R.drawable.gym_forearm
+    "Leg" -> R.drawable.gym_leg
+    "Abs" -> R.drawable.gym_abs
+    "Cardio" -> R.drawable.gym_cardio
+    else -> null
+}
 
 /**
  * Small custom silhouette drawings standing in for exercise photography, which a fully local,
@@ -31,6 +46,7 @@ fun MuscleGlyph(category: String, tint: Color, modifier: Modifier = Modifier) {
             "Leg" -> drawLeg(tint, w, h)
             "Abs" -> drawAbs(tint, w, h)
             "Cardio" -> drawCardio(tint, w, h)
+            "Sport" -> drawSport(tint, w, h)
             else -> drawChest(tint, w, h)
         }
     }
@@ -138,6 +154,24 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawCardio(tint: Co
         cubicTo(0.72f * w, 0.05f * h, 0.98f * w, 0.2f * h, 0.5f * w, 0.82f * h)
         close()
     }
+    drawPath(path, tint)
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawSport(tint: Color, w: Float, h: Float) {
+    // A simple five-point star standing in for "general sport/activity".
+    val cx = 0.5f * w
+    val cy = 0.52f * h
+    val outerR = 0.42f * minOf(w, h)
+    val innerR = outerR * 0.42f
+    val path = Path()
+    for (i in 0 until 10) {
+        val r = if (i % 2 == 0) outerR else innerR
+        val angle = Math.PI / 2 + i * Math.PI / 5
+        val x = cx + (r * kotlin.math.cos(angle)).toFloat()
+        val y = cy - (r * kotlin.math.sin(angle)).toFloat()
+        if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+    }
+    path.close()
     drawPath(path, tint)
 }
 

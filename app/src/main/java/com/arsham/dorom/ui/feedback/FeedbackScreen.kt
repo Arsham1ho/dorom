@@ -73,6 +73,7 @@ fun FeedbackScreen(onBack: () -> Unit) {
     val container = LocalAppContainer.current
 
     var selectedDate by remember { mutableStateOf<LocalDate?>(null) }
+    var showCalendar by remember { mutableStateOf(true) }
 
     val allReviews by container.reviewRepository.observeAllReviews().collectAsStateWithLifecycle(initialValue = emptyList())
     val markedDates = remember(allReviews) {
@@ -87,26 +88,44 @@ fun FeedbackScreen(onBack: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            item {
-                DoromCard(modifier = Modifier.fillMaxWidth()) {
-                    Column {
-                        Text("Which day?", style = MaterialTheme.typography.titleMedium)
-                        Text(
-                            "Days with a dot already have feedback saved.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp, bottom = 10.dp),
-                        )
-                        MonthCalendar(
-                            selectedDate = selectedDate,
-                            markedDates = markedDates,
-                            onSelectDate = { selectedDate = it },
-                        )
+            val date = selectedDate
+            if (showCalendar || date == null) {
+                item {
+                    DoromCard(modifier = Modifier.fillMaxWidth()) {
+                        Column {
+                            Text("Which day?", style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Days with a dot already have feedback saved.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 2.dp, bottom = 10.dp),
+                            )
+                            MonthCalendar(
+                                selectedDate = selectedDate,
+                                markedDates = markedDates,
+                                onSelectDate = { selectedDate = it; showCalendar = false },
+                            )
+                        }
+                    }
+                }
+            } else {
+                item {
+                    DoromCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = { showCalendar = true },
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        ) {
+                            Text(feedbackDateLabel(date), style = MaterialTheme.typography.titleMedium)
+                            Text("Change day", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
             }
 
-            val date = selectedDate
             if (date != null) {
                 item {
                     DayFeedbackSection(date = date, onBack = onBack)

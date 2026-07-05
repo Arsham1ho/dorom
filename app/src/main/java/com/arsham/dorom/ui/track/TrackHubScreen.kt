@@ -36,7 +36,7 @@ private data class TrackTile(val icon: ImageVector, val label: String, val subti
 
 private val tiles = listOf(
     TrackTile(Icons.AutoMirrored.Filled.MenuBook, "Courses", "Lessons & progress", Routes.TRACK_COURSES, BadgeBlue),
-    TrackTile(Icons.Filled.Timelapse, "Time markers", "Countdowns & count-ups", Routes.TRACK_TIME_MARKERS, BadgeGold),
+    TrackTile(Icons.Filled.Timelapse, "Time Since", "Countdowns & count-ups", Routes.TRACK_TIME_MARKERS, BadgeGold),
     TrackTile(Icons.Filled.FitnessCenter, "Gym", "Workout plan", Routes.TRACK_GYM, Terracotta),
     TrackTile(Icons.Filled.MusicNote, "Guitar", "Songs, tabs & recordings", Routes.TRACK_GUITAR, BadgeViolet),
     TrackTile(Icons.Filled.Savings, "Finance", "Income, expenses & saving", Routes.TRACK_FINANCE, Sage),

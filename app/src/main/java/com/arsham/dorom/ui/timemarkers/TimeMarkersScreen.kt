@@ -59,7 +59,7 @@ fun TimeMarkersScreen(onBack: () -> Unit) {
     var showAdd by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        TopBarWithBack(title = "Time markers", onBack = onBack) {
+        TopBarWithBack(title = "Time Since", onBack = onBack) {
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Filled.Add, contentDescription = "Add marker") }
         }
 
@@ -106,6 +106,7 @@ private fun MarkerEditor(onSave: (TimeMarker) -> Unit, onCancel: () -> Unit) {
                 TimeField(label = "Time", time = time, onTimeChange = { time = it })
             }
             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     val d = date ?: return@Button
                     if (title.isBlank()) return@Button
@@ -113,7 +114,6 @@ private fun MarkerEditor(onSave: (TimeMarker) -> Unit, onCancel: () -> Unit) {
                     val millis = d.atTime(LocalTime.of(h, m)).atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     onSave(TimeMarker(title = title.trim(), targetEpochMillis = millis, direction = direction))
                 }) { Text("Save") }
-                Button(onClick = onCancel) { Text("Cancel") }
             }
         }
     }

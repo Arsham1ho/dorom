@@ -158,11 +158,11 @@ private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -
             )
             OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = note, onValueChange = { note = it }, label = { Text("Note (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     val amt = amount.toDoubleOrNull() ?: return@Button
                     onSave(MoneyTransaction(date = todayString(), type = type, category = category, amount = amt, note = note.trim()))
                 }) { Text("Save") }
-                Button(onClick = onCancel) { Text("Cancel") }
             }
         }
     }
