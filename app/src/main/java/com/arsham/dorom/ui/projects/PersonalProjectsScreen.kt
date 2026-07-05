@@ -65,7 +65,11 @@ fun PersonalProjectsScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(projects) { project ->
-                ProjectCard(project = project, onDelete = { scope.launch { container.personalProjectRepository.deleteProject(project) } })
+                ProjectCard(
+                    project = project,
+                    onProgressChange = { pct -> scope.launch { container.personalProjectRepository.upsertProject(project.copy(progressPercent = pct)) } },
+                    onDelete = { scope.launch { container.personalProjectRepository.deleteProject(project) } },
+                )
             }
         }
     }
@@ -121,7 +125,7 @@ private fun ProjectEditor(onSave: (String, String) -> Unit, onCancel: () -> Unit
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
-private fun ProjectCard(project: PersonalProject, onDelete: () -> Unit) {
+private fun ProjectCard(project: PersonalProject, onProgressChange: (Int) -> Unit, onDelete: () -> Unit) {
     val scope = rememberCoroutineScope()
     var showConfirm by remember { mutableStateOf(false) }
     val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
@@ -148,13 +152,21 @@ private fun ProjectCard(project: PersonalProject, onDelete: () -> Unit) {
         },
     ) {
         DoromCard(modifier = Modifier.fillMaxWidth()) {
-            Column {
-                Text(project.name, style = MaterialTheme.typography.titleMedium)
-                if (project.description.isNotBlank()) {
-                    Text(
-                        project.description,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                com.arsham.dorom.ui.components.ProgressRing(percent = project.progressPercent / 100f, size = 56.dp, strokeWidth = 6.dp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(project.name, style = MaterialTheme.typography.titleMedium)
+                    if (project.description.isNotBlank()) {
+                        Text(
+                            project.description,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    androidx.compose.material3.Slider(
+                        value = project.progressPercent.toFloat(),
+                        onValueChange = { onProgressChange(it.toInt()) },
+                        valueRange = 0f..100f,
                         modifier = Modifier.padding(top = 4.dp),
                     )
                 }
