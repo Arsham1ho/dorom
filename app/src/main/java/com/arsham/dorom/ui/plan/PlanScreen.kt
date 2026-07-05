@@ -494,6 +494,8 @@ private fun AddTaskCard(date: String, onAdd: (TaskDraft) -> Unit, onDismiss: () 
         gymExerciseCount = gymExercises.size
     }
 
+    val projects by container.personalProjectRepository.observeProjects().collectAsStateWithLifecycle(initialValue = emptyList())
+
     DoromCard(modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp)) {
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Row(
@@ -544,6 +546,32 @@ private fun AddTaskCard(date: String, onAdd: (TaskDraft) -> Unit, onDismiss: () 
                             newCategory = category
                             if (newTitle.isEmpty()) newTitle = category
                         },
+                    )
+                }
+            }
+            if (newCategory == "Personal Project") {
+                if (projects.isNotEmpty()) {
+                    Text(
+                        "Your projects",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 6.dp),
+                    )
+                    LazyRow(modifier = Modifier.padding(bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items(projects) { project ->
+                            Tag(
+                                text = project.name,
+                                filled = newTitle == "Project: ${project.name}",
+                                modifier = Modifier.doromClickable { newTitle = "Project: ${project.name}" },
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        "No projects tracked yet — add one under Track > Personal Projects.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 8.dp),
                     )
                 }
             }
