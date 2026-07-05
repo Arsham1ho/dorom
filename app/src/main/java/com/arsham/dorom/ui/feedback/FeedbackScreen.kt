@@ -40,7 +40,6 @@ import com.arsham.dorom.ui.components.RecordingWaveform
 import com.arsham.dorom.ui.components.SectionHeader
 import com.arsham.dorom.ui.components.TopBarWithBack
 import com.arsham.dorom.ui.theme.DataText
-import com.arsham.dorom.ui.theme.Sage
 import com.arsham.dorom.util.AudioPlayer
 import com.arsham.dorom.util.AudioRecorder
 import com.arsham.dorom.util.todayString
@@ -56,7 +55,6 @@ fun FeedbackScreen(onBack: () -> Unit) {
 
     val review by container.reviewRepository.observeReview(today).collectAsStateWithLifecycle(initialValue = null)
     var text by remember(review?.date) { mutableStateOf(review?.feedbackText ?: "") }
-    var justSaved by remember { mutableStateOf(false) }
 
     val recorder = remember { AudioRecorder(context) }
     val player = remember { AudioPlayer() }
@@ -105,28 +103,20 @@ fun FeedbackScreen(onBack: () -> Unit) {
                     SectionHeader(title = "In your words")
                     OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape,
                         value = text,
-                        onValueChange = { text = it; justSaved = false },
+                        onValueChange = { text = it },
                         modifier = Modifier.fillMaxWidth().height(160.dp),
                         label = { Text("How did today go?") },
                     )
-                    Row(
+                    Button(
                         modifier = Modifier.padding(top = 8.dp),
-                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Button(
-                            onClick = {
-                                focusManager.clearFocus()
-                                scope.launch {
-                                    container.reviewRepository.saveFeedback(today, text, null)
-                                    justSaved = true
-                                }
-                            },
-                        ) { Text("Save") }
-                        if (justSaved) {
-                            Text("Saved ✓", style = MaterialTheme.typography.labelMedium, color = Sage)
-                        }
-                    }
+                        onClick = {
+                            focusManager.clearFocus()
+                            scope.launch {
+                                container.reviewRepository.saveFeedback(today, text, null)
+                                onBack()
+                            }
+                        },
+                    ) { Text("Save") }
                 }
             }
 
