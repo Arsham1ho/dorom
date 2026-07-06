@@ -152,7 +152,7 @@ private fun PracticeEditor(onSave: (LocalDate, Int, String) -> Unit, onCancel: (
                 value = notes, onValueChange = { notes = it }, label = { Text("Notes (optional)") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
-            Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     val m = minutes.toIntOrNull() ?: 0

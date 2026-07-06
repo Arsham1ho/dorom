@@ -1,5 +1,6 @@
 package com.arsham.dorom.ui.timemarkers
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Timelapse
@@ -28,8 +30,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.TimeDirection
 import com.arsham.dorom.data.entity.TimeMarker
@@ -42,6 +47,8 @@ import com.arsham.dorom.ui.components.Tag
 import com.arsham.dorom.ui.components.TimeField
 import com.arsham.dorom.ui.components.TopBarWithBack
 import com.arsham.dorom.ui.theme.BadgeGold
+import com.arsham.dorom.ui.theme.CardShape
+import com.arsham.dorom.ui.theme.DangerRed
 import com.arsham.dorom.ui.theme.DataText
 import com.arsham.dorom.ui.theme.doromClickable
 import com.arsham.dorom.ui.theme.rememberPulse
@@ -63,7 +70,7 @@ fun TimeMarkersScreen(onBack: () -> Unit) {
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Filled.Add, contentDescription = "Add marker") }
         }
 
-        if (markers.isEmpty() && !showAdd) {
+        if (markers.isEmpty()) {
             EmptyState(icon = Icons.Filled.Timelapse, title = "No markers yet", subtitle = "Track time left until something, or time since something happened.")
         }
 
@@ -72,17 +79,18 @@ fun TimeMarkersScreen(onBack: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (showAdd) {
-                item {
-                    MarkerEditor(
-                        onSave = { marker -> scope.launch { container.timeMarkerRepository.upsertMarker(marker) }; showAdd = false },
-                        onCancel = { showAdd = false },
-                    )
-                }
-            }
             items(markers) { marker ->
                 MarkerCard(marker, onDelete = { scope.launch { container.timeMarkerRepository.deleteMarker(marker) } })
             }
+        }
+    }
+
+    if (showAdd) {
+        Dialog(onDismissRequest = { showAdd = false }) {
+            MarkerEditor(
+                onSave = { marker -> scope.launch { container.timeMarkerRepository.upsertMarker(marker) }; showAdd = false },
+                onCancel = { showAdd = false },
+            )
         }
     }
 }
@@ -96,7 +104,15 @@ private fun MarkerEditor(onSave: (TimeMarker) -> Unit, onCancel: () -> Unit) {
 
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = title, onValueChange = { title = it }, label = { Text("What is it?") }, modifier = Modifier.fillMaxWidth())
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Add a marker", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onCancel) { Icon(Icons.Filled.Close, contentDescription = "Close") }
+            }
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = title, onValueChange = { title = it }, label = { Text("What is it?") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
             Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Tag(text = "Countdown", filled = direction == TimeDirection.COUNTDOWN, modifier = Modifier.doromClickable { direction = TimeDirection.COUNTDOWN })
                 Tag(text = "Count-up", filled = direction == TimeDirection.COUNTUP, modifier = Modifier.doromClickable { direction = TimeDirection.COUNTUP })
@@ -105,7 +121,7 @@ private fun MarkerEditor(onSave: (TimeMarker) -> Unit, onCancel: () -> Unit) {
                 DateField(label = "Date", date = date, onDateChange = { date = it })
                 TimeField(label = "Time", time = time, onTimeChange = { time = it })
             }
-            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     val d = date ?: return@Button
@@ -119,11 +135,36 @@ private fun MarkerEditor(onSave: (TimeMarker) -> Unit, onCancel: () -> Unit) {
     }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 private fun MarkerCard(marker: TimeMarker, onDelete: () -> Unit) {
     val pulse = rememberPulse()
-    DoromCard(modifier = Modifier.fillMaxWidth()) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+    val scope = rememberCoroutineScope()
+    var showConfirm by remember { mutableStateOf(false) }
+    val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == androidx.compose.material3.SwipeToDismissBoxValue.StartToEnd) showConfirm = true
+            false
+        },
+    )
+
+    androidx.compose.material3.SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = true,
+        enableDismissFromEndToStart = false,
+        backgroundContent = {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CardShape)
+                    .background(DangerRed)
+                    .padding(horizontal = 20.dp),
+            ) {
+                Icon(Icons.Filled.Delete, contentDescription = null, tint = Color.White)
+            }
+        },
+    ) {
+        DoromCard(modifier = Modifier.fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 IconBadge(
                     icon = if (marker.direction == TimeDirection.COUNTDOWN) Icons.Filled.Timelapse else Icons.Filled.History,
@@ -139,8 +180,24 @@ private fun MarkerCard(marker: TimeMarker, onDelete: () -> Unit) {
                     )
                 }
             }
-            IconButton(onClick = onDelete) { Icon(Icons.Filled.Delete, contentDescription = "Delete") }
         }
+    }
+
+    if (showConfirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showConfirm = false; scope.launch { dismissState.reset() } },
+            title = { Text("Remove marker?") },
+            text = { Text("Remove \"${marker.title}\"?") },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = {
+                    showConfirm = false
+                    onDelete()
+                }) { Text("Remove") }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(onClick = { showConfirm = false; scope.launch { dismissState.reset() } }) { Text("Cancel") }
+            },
+        )
     }
 }
 

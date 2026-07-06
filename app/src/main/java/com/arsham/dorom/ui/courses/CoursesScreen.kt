@@ -134,7 +134,7 @@ private fun CourseEditor(onSave: (String, Int, LocalDate?, LocalDate?) -> Unit, 
                 DateField(label = "When to start", date = startDate, onDateChange = { startDate = it })
                 DateField(label = "Deadline", date = deadlineDate, onDateChange = { deadlineDate = it })
             }
-            Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     val t = total.toIntOrNull() ?: 0

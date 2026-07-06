@@ -124,6 +124,20 @@ private fun GoalEditor(onSave: (LongTermGoal, android.net.Uri?) -> Unit, onCance
                 Text("Add a goal", style = MaterialTheme.typography.titleMedium)
                 IconButton(onClick = onCancel) { Icon(Icons.Filled.Close, contentDescription = "Close") }
             }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Icon(Icons.Filled.Image, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    if (imageUri != null) "Image attached ✓" else "Add a photo (optional)",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (imageUri != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                Button(onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) { Text("Pick") }
+            }
             OutlinedTextField(
                 shape = com.arsham.dorom.ui.theme.InputShape,
                 value = title, onValueChange = { title = it }, label = { Text("Goal") },
@@ -146,21 +160,7 @@ private fun GoalEditor(onSave: (LongTermGoal, android.net.Uri?) -> Unit, onCance
                 DateField(label = "When to start", date = startDate, onDateChange = { startDate = it })
                 DateField(label = "Deadline", date = deadlineDate, onDateChange = { deadlineDate = it })
             }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Icon(Icons.Filled.Image, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(
-                    if (imageUri != null) "Image attached ✓" else "Add a photo (optional)",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (imageUri != null) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                Button(onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) { Text("Pick") }
-            }
-            Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     if (title.isNotBlank()) {

@@ -115,7 +115,7 @@ private fun ProjectEditor(onSave: (String, String) -> Unit, onCancel: () -> Unit
                 value = desc, onValueChange = { desc = it }, label = { Text("What's it about? (optional)") },
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
-            Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = { if (name.isNotBlank()) onSave(name.trim(), desc.trim()) }) { Text("Save") }
             }

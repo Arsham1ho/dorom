@@ -101,19 +101,19 @@ fun FinanceScreen(onBack: () -> Unit) {
                 }
             }
 
-            if (showAdd) {
-                item {
-                    TransactionEditor(
-                        onSave = { tx -> scope.launch { container.financeRepository.upsertTransaction(tx) }; showAdd = false },
-                        onCancel = { showAdd = false },
-                    )
-                }
-            }
-
             item { SectionHeader(title = "This month") }
             items(transactions) { tx ->
                 TransactionRow(tx, onDelete = { scope.launch { container.financeRepository.deleteTransaction(tx) } })
             }
+        }
+    }
+
+    if (showAdd) {
+        Dialog(onDismissRequest = { showAdd = false }) {
+            TransactionEditor(
+                onSave = { tx -> scope.launch { container.financeRepository.upsertTransaction(tx) }; showAdd = false },
+                onCancel = { showAdd = false },
+            )
         }
     }
 }
@@ -144,7 +144,15 @@ private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -
 
     DoromCard(modifier = Modifier.fillMaxWidth()) {
         Column {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Add a transaction", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onCancel) { Icon(Icons.Filled.Close, contentDescription = "Close") }
+            }
+            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 TransactionType.entries.forEach { t ->
                     Tag(
                         text = t.name.lowercase().replaceFirstChar { it.uppercase() },
@@ -162,12 +170,12 @@ private fun TransactionEditor(onSave: (MoneyTransaction) -> Unit, onCancel: () -
                     Tag(text = c, filled = category == c, modifier = Modifier.doromClickable { category = c })
                 }
             }
-            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, 
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape,
                 value = amount, onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
                 label = { Text("Amount") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
             )
             OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = note, onValueChange = { note = it }, label = { Text("Note (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     val amt = amount.toDoubleOrNull() ?: return@Button
