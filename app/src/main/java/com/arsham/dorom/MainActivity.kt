@@ -62,6 +62,10 @@ class MainActivity : FragmentActivity() {
                     val currentRoute = backStackEntry?.destination?.route
                     val pendingRoute by pendingRouteState
 
+                    // No-ops when signed out; when signed in, this is the "sync on launch" leg —
+                    // the other two are the periodic WorkManager job and right after sign-in.
+                    LaunchedEffect(Unit) { container.syncEngine.syncAll() }
+
                     LaunchedEffect(pendingRoute) {
                         pendingRoute?.let {
                             navController.navigate(it)

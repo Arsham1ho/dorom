@@ -64,14 +64,23 @@ interface PlanDao {
 
 @Dao
 interface GoalDao {
-    @Query("SELECT * FROM long_term_goal WHERE isArchived = 0 ORDER BY createdAtEpochMillis DESC")
+    @Query("SELECT * FROM long_term_goal WHERE isArchived = 0 AND deletedAtEpochMillis IS NULL ORDER BY createdAtEpochMillis DESC")
     fun observeGoals(): Flow<List<LongTermGoal>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertGoal(goal: LongTermGoal): Long
+    @androidx.room.Upsert
+    suspend fun upsertGoal(goal: LongTermGoal)
 
-    @Delete
-    suspend fun deleteGoal(goal: LongTermGoal)
+    @Query("SELECT * FROM long_term_goal WHERE pendingSync = 1")
+    suspend fun getPendingSync(): List<LongTermGoal>
+
+    @Query("UPDATE long_term_goal SET pendingSync = 0 WHERE id = :id")
+    suspend fun markSynced(id: String)
+
+    @Query("SELECT * FROM long_term_goal WHERE id = :id")
+    suspend fun getById(id: String): LongTermGoal?
+
+    @Query("DELETE FROM long_term_goal WHERE id = :id")
+    suspend fun hardDeleteById(id: String)
 }
 
 @Dao

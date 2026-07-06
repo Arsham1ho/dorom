@@ -86,7 +86,7 @@ class Converters {
         PersonalProject::class,
         FinnishPracticeEntry::class,
     ],
-    version = 11,
+    version = 12,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

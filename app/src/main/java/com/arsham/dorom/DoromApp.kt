@@ -1,7 +1,14 @@
 package com.arsham.dorom
 
 import android.app.Application
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.arsham.dorom.data.db.AppDatabase
+import com.arsham.dorom.data.remote.AuthRepository
+import com.arsham.dorom.data.remote.SupabaseModule
 import com.arsham.dorom.data.repository.CourseRepository
 import com.arsham.dorom.data.repository.FinanceRepository
 import com.arsham.dorom.data.repository.GoalsRepository
@@ -16,8 +23,13 @@ import com.arsham.dorom.data.repository.ReviewRepository
 import com.arsham.dorom.data.repository.TimeMarkerRepository
 import com.arsham.dorom.data.repository.WeeklyPlanRepository
 import com.arsham.dorom.data.settings.SettingsRepository
+import com.arsham.dorom.data.sync.GoalSyncAdapter
+import com.arsham.dorom.data.sync.SyncCursorStore
+import com.arsham.dorom.data.sync.SyncEngine
+import com.arsham.dorom.data.sync.SyncWorker
 import com.arsham.dorom.notifications.AlarmScheduler
 import com.arsham.dorom.notifications.NotificationHelper
+import java.util.concurrent.TimeUnit
 
 /** Simple hand-rolled service locator — this is a single-user app, no DI framework needed. */
 class DoromApp : Application() {
@@ -28,6 +40,15 @@ class DoromApp : Application() {
         super.onCreate()
         NotificationHelper.ensureChannels(this)
         container = AppContainer(this)
+
+        val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(30, TimeUnit.MINUTES)
+            .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+            .build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "dorom-sync",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            syncRequest,
+        )
     }
 }
 
@@ -49,4 +70,14 @@ class AppContainer(app: Application) {
     val journalRepository = JournalRepository(db.journalDao(), app)
     val financeRepository = FinanceRepository(db.financeDao())
     val moodRepository = MoodRepository(db.moodDao())
+
+    val supabaseClient = SupabaseModule.client
+    val authRepository = AuthRepository(supabaseClient)
+    private val syncCursorStore = SyncCursorStore(app)
+    val syncEngine = SyncEngine(
+        client = supabaseClient,
+        authRepository = authRepository,
+        cursorStore = syncCursorStore,
+        adapters = listOf(GoalSyncAdapter(db.goalDao())),
+    )
 }

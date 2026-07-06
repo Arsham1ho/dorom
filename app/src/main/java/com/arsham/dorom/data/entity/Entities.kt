@@ -29,7 +29,10 @@ data class PlanTask(
 
 @Entity(tableName = "long_term_goal")
 data class LongTermGoal(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    // Client-generated UUID (not autoGenerate) — a device inserting offline must not collide with
+    // another device's insert once both sync. Every other entity keeps Room's autoGenerate Long
+    // ids for now; this one is the sync pilot, fanned out to the rest in a later pass.
+    @PrimaryKey val id: String = java.util.UUID.randomUUID().toString(),
     val title: String,
     val description: String,
     val startDate: String? = null, // yyyy-MM-dd
@@ -39,6 +42,9 @@ data class LongTermGoal(
     val progressPercent: Int = 0,
     val isArchived: Boolean = false,
     val createdAtEpochMillis: Long,
+    val updatedAtEpochMillis: Long = createdAtEpochMillis,
+    val deletedAtEpochMillis: Long? = null,
+    val pendingSync: Boolean = true,
 )
 
 @Entity(tableName = "personal_project")
