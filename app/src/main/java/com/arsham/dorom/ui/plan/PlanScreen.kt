@@ -278,7 +278,7 @@ private fun DayPlanContent(date: LocalDate, onNavigate: (String) -> Unit, modifi
 
         item {
             SectionHeader(
-                title = if (tasks.isEmpty()) "No tasks yet" else "${tasks.size} tasks",
+                title = if (tasks.isEmpty()) "No tasks yet" else "${tasks.size} ${if (tasks.size == 1) "task" else "tasks"}",
                 action = {
                     IconButton(onClick = { showAddTask = !showAddTask }) {
                         Icon(Icons.Filled.Add, contentDescription = "Add task")

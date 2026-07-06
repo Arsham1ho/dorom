@@ -19,9 +19,9 @@ val ParchmentOutline = Color(0xFFDDDDDD)
 val Terracotta = Color(0xFF2E7CF6)
 val TerracottaDim = Color(0xFF1E4FA0)
 val TerracottaOnLight = Color(0xFF1B5FD1)
-val Sage = Color(0xFF6E7A8A)
-val SageDim = Color(0xFF465061)
-val SageOnLight = Color(0xFF4C5768)
+val Sage = Color(0xFF4CAF7D)
+val SageDim = Color(0xFF2F7A54)
+val SageOnLight = Color(0xFF2E8F5C)
 
 val TextPrimary = Color(0xFFFFFFFF)
 val TextSecondary = Color(0xFFB3B3B3)
@@ -35,8 +35,8 @@ val DangerRed = Color(0xFFE0453F)
 val DangerRedOnLight = Color(0xFFC62F2A)
 val WarnAmber = Color(0xFFD9A441)
 
-// Neutral grayscale badge tints — Spotify keeps color reserved for the one accent, so per-tile
-// "variety" comes from brightness steps instead of separate hues.
-val BadgeBlue = Color(0xFF8A8A8A)
-val BadgeViolet = Color(0xFF6E6E6E)
-val BadgeGold = Color(0xFFA0A0A0)
+// Vivid per-category badge tints, so every tile reads with its own color instead of the
+// accent blue carrying the whole app alone.
+val BadgeBlue = Color(0xFF29C1D6)
+val BadgeViolet = Color(0xFF9C6ADE)
+val BadgeGold = Color(0xFFE8A93D)
