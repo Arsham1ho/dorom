@@ -173,37 +173,7 @@ private fun ExerciseDialog(
         title = { Text(title) },
         text = {
             Column {
-                OutlinedTextField(
-                    shape = com.arsham.dorom.ui.theme.InputShape,
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    OutlinedTextField(
-                        shape = com.arsham.dorom.ui.theme.InputShape,
-                        value = sets,
-                        onValueChange = { sets = it.filter(Char::isDigit) },
-                        label = { Text("Sets") },
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedTextField(
-                        shape = com.arsham.dorom.ui.theme.InputShape,
-                        value = reps,
-                        onValueChange = { reps = it.filter(Char::isDigit) },
-                        label = { Text("Reps") },
-                        modifier = Modifier.weight(1f),
-                    )
-                    OutlinedTextField(
-                        shape = com.arsham.dorom.ui.theme.InputShape,
-                        value = weight,
-                        onValueChange = { weight = it.filter { c -> c.isDigit() || c == '.' } },
-                        label = { Text("Weight") },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                Row(modifier = Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val hasImage = pendingImageUri != null || initial?.imagePath != null
                     Text(
                         if (hasImage) "Image attached ✓" else "Add a photo (optional)",
@@ -214,6 +184,39 @@ private fun ExerciseDialog(
                     IconButton(onClick = { imagePicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }) {
                         Icon(Icons.Filled.Add, contentDescription = "Pick image")
                     }
+                }
+                OutlinedTextField(
+                    shape = com.arsham.dorom.ui.theme.InputShape,
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth().padding(top = 10.dp),
+                )
+                Row(modifier = Modifier.padding(top = 10.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        shape = com.arsham.dorom.ui.theme.InputShape,
+                        value = sets,
+                        onValueChange = { sets = it.filter(Char::isDigit) },
+                        label = { Text("Sets", maxLines = 1, style = MaterialTheme.typography.bodySmall) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        shape = com.arsham.dorom.ui.theme.InputShape,
+                        value = reps,
+                        onValueChange = { reps = it.filter(Char::isDigit) },
+                        label = { Text("Reps", maxLines = 1, style = MaterialTheme.typography.bodySmall) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        shape = com.arsham.dorom.ui.theme.InputShape,
+                        value = weight,
+                        onValueChange = { weight = it.filter { c -> c.isDigit() || c == '.' } },
+                        label = { Text("Weight", maxLines = 1, style = MaterialTheme.typography.bodySmall) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
             }
         },

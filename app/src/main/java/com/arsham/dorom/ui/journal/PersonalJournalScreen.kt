@@ -307,7 +307,7 @@ private fun AddEntryEditor(onSave: (String, String?, String?) -> Unit, onCancel:
                     modifier = Modifier.padding(top = 10.dp),
                 )
             }
-            Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                 Button(onClick = onCancel) { Text("Cancel") }
                 Button(onClick = {
                     // Finalize an in-progress recording first — saving while still recording would

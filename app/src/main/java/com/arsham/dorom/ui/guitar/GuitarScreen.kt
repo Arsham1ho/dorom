@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MusicNote
@@ -42,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arsham.dorom.data.entity.GuitarSong
 import com.arsham.dorom.data.entity.SongStatus
@@ -70,15 +72,13 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
     val scope = rememberCoroutineScope()
     val songs by container.guitarRepository.observeSongs().collectAsStateWithLifecycle(initialValue = emptyList())
     var showAdd by remember { mutableStateOf(false) }
-    var newTitle by remember { mutableStateOf("") }
-    var newArtist by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopBarWithBack(title = "Guitar", onBack = onBack) {
             IconButton(onClick = { showAdd = true }) { Icon(Icons.Filled.Add, contentDescription = "Add song") }
         }
 
-        if (songs.isEmpty() && !showAdd) {
+        if (songs.isEmpty()) {
             EmptyState(icon = Icons.Filled.MusicNote, title = "No songs yet", subtitle = "Add a song you're learning, then attach tabs and recordings.")
         }
 
@@ -87,29 +87,6 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            if (showAdd) {
-                item {
-                    DoromCard(modifier = Modifier.fillMaxWidth()) {
-                        Column {
-                            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newTitle, onValueChange = { newTitle = it }, label = { Text("Song title") }, modifier = Modifier.fillMaxWidth())
-                            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newArtist, onValueChange = { newArtist = it }, label = { Text("Artist (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
-                            Row(modifier = Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                Button(onClick = { showAdd = false }) { Text("Cancel") }
-                                Button(onClick = {
-                                    if (newTitle.isNotBlank()) {
-                                        scope.launch {
-                                            container.guitarRepository.upsertSong(
-                                                GuitarSong(title = newTitle.trim(), artist = newArtist.trim(), createdAtEpochMillis = System.currentTimeMillis())
-                                            )
-                                        }
-                                        newTitle = ""; newArtist = ""; showAdd = false
-                                    }
-                                }) { Text("Save") }
-                            }
-                        }
-                    }
-                }
-            }
             items(songs) { song ->
                 DoromCard(modifier = Modifier.fillMaxWidth(), onClick = { onOpenSong(song.id) }) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
@@ -125,6 +102,49 @@ fun GuitarScreen(onBack: () -> Unit, onOpenSong: (Long) -> Unit) {
                         Tag(text = if (song.status == SongStatus.LEARNED) "Learned" else "Learning", filled = song.status == SongStatus.LEARNED)
                     }
                 }
+            }
+        }
+    }
+
+    if (showAdd) {
+        Dialog(onDismissRequest = { showAdd = false }) {
+            AddSongEditor(
+                onSave = { title, artist ->
+                    scope.launch {
+                        container.guitarRepository.upsertSong(
+                            GuitarSong(title = title, artist = artist, createdAtEpochMillis = System.currentTimeMillis())
+                        )
+                    }
+                    showAdd = false
+                },
+                onCancel = { showAdd = false },
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddSongEditor(onSave: (String, String) -> Unit, onCancel: () -> Unit) {
+    var newTitle by remember { mutableStateOf("") }
+    var newArtist by remember { mutableStateOf("") }
+
+    DoromCard(modifier = Modifier.fillMaxWidth()) {
+        Column {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("Add a song", style = MaterialTheme.typography.titleMedium)
+                IconButton(onClick = onCancel) { Icon(Icons.Filled.Close, contentDescription = "Close") }
+            }
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newTitle, onValueChange = { newTitle = it }, label = { Text("Song title") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+            OutlinedTextField(shape = com.arsham.dorom.ui.theme.InputShape, value = newArtist, onValueChange = { newArtist = it }, label = { Text("Artist (optional)") }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+            Row(modifier = Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                Button(onClick = onCancel) { Text("Cancel") }
+                Button(onClick = {
+                    if (newTitle.isNotBlank()) onSave(newTitle.trim(), newArtist.trim())
+                }) { Text("Save") }
             }
         }
     }
