@@ -24,6 +24,7 @@ object Routes {
     const val HISTORY = "history"
     const val SETTINGS = "settings"
     const val MOOD_REPORT = "mood_report"
+    const val SIGN_IN = "sign_in"
 
     fun guitarSong(songId: Long) = "track_guitar_song/$songId"
     fun gymCategory(location: String, category: String) = "gym_category/$location/$category"

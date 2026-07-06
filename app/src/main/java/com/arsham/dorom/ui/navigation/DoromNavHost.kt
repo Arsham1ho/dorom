@@ -133,7 +133,10 @@ fun DoromNavHost(navController: NavHostController, startDestination: String) {
             HistoryScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.SETTINGS) {
-            SettingsScreen(onBack = { navController.popBackStack() })
+            SettingsScreen(onBack = { navController.popBackStack() }, onNavigate = { navController.navigate(it) })
+        }
+        composable(Routes.SIGN_IN) {
+            com.arsham.dorom.ui.auth.SignInScreen(onBack = { navController.popBackStack() })
         }
         composable(Routes.MOOD_REPORT) {
             MoodReportScreen()

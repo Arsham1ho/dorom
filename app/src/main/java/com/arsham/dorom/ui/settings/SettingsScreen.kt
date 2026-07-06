@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -24,15 +25,18 @@ import com.arsham.dorom.ui.components.DoromCard
 import com.arsham.dorom.ui.components.Tag
 import com.arsham.dorom.ui.components.TimeField
 import com.arsham.dorom.ui.components.TopBarWithBack
+import com.arsham.dorom.ui.navigation.Routes
 import com.arsham.dorom.ui.theme.ThemeMode
 import com.arsham.dorom.ui.theme.doromClickable
+import io.github.jan.supabase.auth.status.SessionStatus
 import kotlinx.coroutines.launch
 
 @Composable
-fun SettingsScreen(onBack: () -> Unit) {
+fun SettingsScreen(onBack: () -> Unit, onNavigate: (String) -> Unit) {
     val container = LocalAppContainer.current
     val scope = rememberCoroutineScope()
     val settings by container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = DoromSettings())
+    val sessionStatus by container.authRepository.sessionStatus.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize()) {
         TopBarWithBack(title = "Settings", onBack = onBack)
@@ -102,6 +106,31 @@ fun SettingsScreen(onBack: () -> Unit) {
                             checked = settings.biometricLockEnabled,
                             onCheckedChange = { scope.launch { container.settingsRepository.setBiometricLockEnabled(it) } },
                         )
+                    }
+                }
+            }
+            item {
+                DoromCard(modifier = Modifier.fillMaxWidth()) {
+                    Column {
+                        Text("Account", style = MaterialTheme.typography.titleMedium)
+                        val authed = sessionStatus as? SessionStatus.Authenticated
+                        if (authed != null) {
+                            Text(
+                                "Synced as ${container.authRepository.currentUserEmail() ?: "your Google account"}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
+                            )
+                            Button(onClick = { scope.launch { container.authRepository.signOut() } }) { Text("Sign out") }
+                        } else {
+                            Text(
+                                "Everything works locally either way — sign in to also back up and sync across your devices.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 4.dp, bottom = 10.dp),
+                            )
+                            Button(onClick = { onNavigate(Routes.SIGN_IN) }) { Text("Sign in with Google") }
+                        }
                     }
                 }
             }

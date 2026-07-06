@@ -13,7 +13,10 @@ import java.io.File
 class GoalsRepository(private val dao: GoalDao, private val context: Context) {
     fun observeGoals(): Flow<List<LongTermGoal>> = dao.observeGoals()
 
-    suspend fun upsertGoal(goal: LongTermGoal) = dao.upsertGoal(goal)
+    // Every local write marks the row dirty (updatedAt + pendingSync) so the sync engine knows to
+    // push it next round — see data/sync/GoalSyncAdapter.kt.
+    suspend fun upsertGoal(goal: LongTermGoal) =
+        dao.upsertGoal(goal.copy(updatedAtEpochMillis = System.currentTimeMillis(), pendingSync = true))
 
     suspend fun saveGoal(goal: LongTermGoal, imageUri: Uri?) {
         val imagePath = if (imageUri != null) {
@@ -22,12 +25,15 @@ class GoalsRepository(private val dao: GoalDao, private val context: Context) {
         } else {
             goal.imagePath
         }
-        dao.upsertGoal(goal.copy(imagePath = imagePath))
+        upsertGoal(goal.copy(imagePath = imagePath))
     }
 
+    // Soft-delete: keep the row (as a tombstone) until the sync engine confirms the deletion
+    // reached the server, otherwise a device that's offline right now would never learn the goal
+    // was removed. hardDeleteLocally() below is what the sync adapter calls once that's done.
     suspend fun deleteGoal(goal: LongTermGoal) {
         goal.imagePath?.let { File(it).delete() }
-        dao.deleteGoal(goal)
+        dao.upsertGoal(goal.copy(deletedAtEpochMillis = System.currentTimeMillis(), pendingSync = true))
     }
 
     private fun copyImage(uri: Uri): String? {
